@@ -48,7 +48,7 @@ Filesystem operations and SQLite transactions cannot be atomic together. A futur
 - Do not expose private photo paths outside the photo module.
 - The original may contain EXIF metadata, including location. ThingTrace does not display GPS metadata in the MVP.
 - The app-private directory is not a backup. Device loss or app removal can still cause data loss.
-- SHA-256 is currently optional at import time; backup export/import must calculate and verify checksums.
+- SHA-256 is calculated on the archived copy during import with `File.digest('SHA-256')`. Backup export/import must verify the stored checksum and may recalculate it.
 
 ## Current implementation boundary
 
