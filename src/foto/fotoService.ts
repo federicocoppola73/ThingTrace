@@ -10,7 +10,10 @@ const MIME_BY_EXTENSION: Record<string, string> = {
 };
 
 function resolveMimeType(input: PhotoImportInput): string {
-  if (input.mimeType && input.mimeType !== 'application/octet-stream') return input.mimeType.toLowerCase();
+  if (input.mimeType && input.mimeType !== 'application/octet-stream') {
+    const mimeType = input.mimeType.toLowerCase();
+    return mimeType === 'image/jpg' ? 'image/jpeg' : mimeType;
+  }
   const extension = input.originalName?.split('.').pop()?.toLowerCase();
   return extension ? MIME_BY_EXTENSION[extension] ?? '' : '';
 }
