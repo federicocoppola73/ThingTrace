@@ -80,7 +80,7 @@ export class FotoService {
   async moveToTrash(photoId: string): Promise<void> {
     const photo = await this.repository.getById(photoId);
     if (!photo) throw new PhotoError('PHOTO_NOT_FOUND', 'The photo was not found.');
-    if (photo.deletedAt) throw new PhotoError('PHOTO_ALREADY_ACTIVE', 'The photo is already in the trash.');
+    if (photo.deletedAt) throw new PhotoError('PHOTO_ALREADY_IN_TRASH', 'The photo is already in the trash.');
     await this.repository.setDeletedAt(photoId, new Date().toISOString(), new Date().toISOString());
   }
 
