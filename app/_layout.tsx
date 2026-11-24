@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { initializeDatabase } from '@/database/database';
 
 export default function RootLayout() {
@@ -17,8 +17,8 @@ export default function RootLayout() {
 
   if (!ready) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        {error ? null : <ActivityIndicator size="large" />}
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#F8F7F3' }}>
+        {error ? <Text style={{ color: '#A33D32', textAlign: 'center' }}>Impossibile inizializzare l’archivio: {error}</Text> : <ActivityIndicator size="large" color="#43533C" />}
       </View>
     );
   }

@@ -1,4 +1,4 @@
-import { randomUUID } from 'expo-crypto';
+import * as Crypto from 'expo-crypto';
 import { getDatabase } from '@/database/database';
 
 export type ContainerType = 'BOX' | 'BINDER' | 'FOLDER' | 'DRAWER' | 'CABINET' | 'SHELF' | 'OTHER';
@@ -39,11 +39,11 @@ export async function createContainer(input: {
   notes: string | null;
 }): Promise<string> {
   const db = await getDatabase();
-  const id = randomUUID();
+  const id = Crypto.randomUUID();
   const now = new Date().toISOString();
   await db.runAsync(
     'INSERT INTO containers (id, name, type, qr_token, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    id, input.name, input.type, randomUUID(), input.notes, now, now
+    id, input.name, input.type, Crypto.randomUUID(), input.notes, now, now
   );
   return id;
 }

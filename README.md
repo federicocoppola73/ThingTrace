@@ -4,7 +4,7 @@ ThingTrace is an offline-first inventory and archive app for physical containers
 
 ## Current development status
 
-The repository has been initialized with the first implementation slice: the local photo archive module. The repository is not yet a complete runnable Expo application.
+The repository now includes an Expo SDK 58 application scaffold and the first end-to-end source flow: create a container, select photos, copy them to private app storage and display them from the archive. Device installation and runtime validation are still pending.
 
 ## Technical baseline
 
@@ -38,11 +38,11 @@ Install Expo-compatible native dependencies from the app root with `npx expo ins
 
 ## Not implemented yet
 
-- Expo application scaffold and package manifest.
-- Core entity schema and migrations for containers, items and documents.
+- Device-verified dependency installation and native builds.
+- Home/location user interface and full entity workflows.
 - Camera screen integration and QR scanning UI.
 - Thumbnail generation and photo gallery components.
 - Backup/restore integration.
 - Automated TypeScript, unit and Android/iOS device tests.
 
-These are explicit next milestones; the current repository contents should be treated as the photo module foundation, not as a tested release.
+QR workflows, backup/restore, thumbnail processing, remaining entity workflows and automated device tests are subsequent milestones. The current branch is an initial development build, not a tested release.

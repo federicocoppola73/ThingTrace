@@ -1,4 +1,4 @@
-import { randomUUID } from 'expo-crypto';
+import * as Crypto from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { PhotoRepository } from './photoRepository';
 import { PhotoStorage } from './photoStorage';
@@ -31,7 +31,7 @@ export class FotoService {
     const mimeType = resolveMimeType(input);
     if (!mimeType) throw new PhotoError('UNSUPPORTED_IMAGE_TYPE', 'The image format could not be identified.');
 
-    const id = randomUUID();
+    const id = Crypto.randomUUID();
     const now = new Date().toISOString();
     const stored = await this.storage.copyIntoArchive(input.sourceUri, id, mimeType);
 
