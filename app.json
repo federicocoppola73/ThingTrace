@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "ThingTrace",
+    "slug": "thingtrace",
+    "scheme": "thingtrace",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "it.thingtrace.app"
+    },
+    "android": {
+      "package": "it.thingtrace.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F4F1EA"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ThingTrace usa le foto selezionate per inserirle nel tuo archivio personale.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "ThingTrace usa la fotocamera per fotografare oggetti e contenitori.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-sqlite"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
