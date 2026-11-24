@@ -14,7 +14,8 @@ function resolveMimeType(input: PhotoImportInput): string {
     const mimeType = input.mimeType.toLowerCase();
     return mimeType === 'image/jpg' ? 'image/jpeg' : mimeType;
   }
-  const extension = input.originalName?.split('.').pop()?.toLowerCase();
+  const sourcePath = input.originalName ?? input.sourceUri.split(/[?#]/)[0];
+  const extension = sourcePath.split('.').pop()?.toLowerCase();
   return extension ? MIME_BY_EXTENSION[extension] ?? '' : '';
 }
 
