@@ -125,6 +125,7 @@ export default function ContainerDetailScreen() {
         <View style={styles.hero}>
           <Text style={styles.type}>{container.typeLabel.toUpperCase()}</Text>
           <Text style={styles.title}>{container.name}</Text>
+          {container.locationName ? <Text style={styles.notes}>⌖  {container.locationName}</Text> : <Text style={styles.locationMissing}>Ubicazione non assegnata</Text>}
           {container.notes ? <Text style={styles.notes}>{container.notes}</Text> : null}
           <Pressable style={styles.editButton} onPress={() => router.push({ pathname: '/containers/edit', params: { id: container.id } })}>
             <Text style={styles.editButtonText}>Modifica nome e tipologia</Text>
@@ -220,6 +221,7 @@ const styles = StyleSheet.create({
   type: { color: '#68715E', fontSize: 10, letterSpacing: 1.4, fontWeight: '800', marginBottom: 8 },
   title: { fontSize: 27, fontWeight: '800', color: '#252923' },
   notes: { color: '#5E6258', lineHeight: 21, marginTop: 10 },
+  locationMissing: { color: '#858A80', fontSize: 12, marginTop: 9 },
   editButton: { alignSelf: 'flex-start', marginTop: 16, backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 10 },
   editButtonText: { color: '#43533C', fontWeight: '800', fontSize: 13 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
