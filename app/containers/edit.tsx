@@ -18,6 +18,7 @@ export default function EditContainerScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [type, setType] = useState<ContainerType>('BOX');
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -33,6 +34,7 @@ export default function EditContainerScreen() {
       }
       setName(container.name);
       setType(container.type);
+      setNotes(container.notes ?? '');
     }).catch((error) => {
       Alert.alert('Errore', error instanceof Error ? error.message : 'Impossibile caricare il contenitore.');
       router.back();
@@ -48,7 +50,7 @@ export default function EditContainerScreen() {
     if (!id) return;
     setSaving(true);
     try {
-      await updateContainer(id, { name: name.trim(), type });
+      await updateContainer(id, { name: name.trim(), type, notes: notes.trim() || null });
       router.replace({ pathname: '/containers/[id]', params: { id } });
     } catch (error) {
       Alert.alert('Modifica non riuscita', error instanceof Error ? error.message : 'Errore imprevisto.');
@@ -72,6 +74,16 @@ export default function EditContainerScreen() {
           </Pressable>
         ))}
       </View>
+      <Text style={styles.label}>NOTE (FACOLTATIVE)</Text>
+      <TextInput
+        value={notes}
+        onChangeText={setNotes}
+        placeholder="Aggiungi dettagli utili..."
+        placeholderTextColor="#92968E"
+        style={[styles.input, styles.notes]}
+        multiline
+        textAlignVertical="top"
+      />
       <Pressable disabled={saving} onPress={save} style={[styles.button, saving && { opacity: 0.6 }]}>
         <Text style={styles.buttonText}>{saving ? 'Salvataggio...' : 'Salva modifiche'}</Text>
       </Pressable>
@@ -88,6 +100,7 @@ const styles = StyleSheet.create({
   intro: { color: '#68715E', lineHeight: 21 },
   label: { fontSize: 11, letterSpacing: 1.1, fontWeight: '800', color: '#747A6E', marginBottom: 9, marginTop: 22 },
   input: { backgroundColor: '#FFFFFF', borderColor: '#E4E2DA', borderWidth: 1, borderRadius: 12, padding: 15, fontSize: 16, color: '#252923' },
+  notes: { minHeight: 110, textAlignVertical: 'top' },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   typeOption: { borderRadius: 12, borderWidth: 1, borderColor: '#E2E2DA', paddingHorizontal: 15, paddingVertical: 12, backgroundColor: '#FFFFFF' },
   typeSelected: { backgroundColor: '#E8EDE3', borderColor: '#64765A' },
