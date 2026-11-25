@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createItem } from '@/repositories/itemRepository';
@@ -8,6 +8,7 @@ import { ContainerPicker } from '@/components/ContainerPicker';
 
 export default function NewItemScreen() {
   const router = useRouter();
+  const scrollRef = useRef<ScrollView>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -36,7 +37,7 @@ export default function NewItemScreen() {
   }
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}>
-      <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView ref={scrollRef} automaticallyAdjustKeyboardInsets contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={styles.label}>NOME OGGETTO</Text>
         <TextInput value={name} onChangeText={setName} placeholder="Es. Macchina fotografica" style={styles.input} returnKeyType="next" />
         <Text style={styles.label}>DESCRIZIONE (FACOLTATIVA)</Text>
@@ -46,7 +47,7 @@ export default function NewItemScreen() {
         <Text style={styles.label}>CONTENITORE (FACOLTATIVO)</Text>
         <ContainerPicker containers={containers} locations={locations} selectedContainerId={containerId} onSelect={setContainerId} />
         <Text style={styles.label}>NOTE (FACOLTATIVE)</Text>
-        <TextInput value={notes} onChangeText={setNotes} placeholder="Aggiungi dettagli utili..." style={[styles.input, styles.multiline]} multiline />
+        <TextInput value={notes} onChangeText={setNotes} placeholder="Aggiungi dettagli utili..." style={[styles.input, styles.multiline]} multiline onFocus={() => requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }))} />
         <Pressable disabled={saving} onPress={save} style={[styles.button, saving && { opacity: 0.6 }]}><Text style={styles.buttonText}>{saving ? 'Salvataggio...' : 'Crea oggetto'}</Text></Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -54,7 +55,7 @@ export default function NewItemScreen() {
 }
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  page: { padding: 22, paddingTop: 25, paddingBottom: 56, flexGrow: 1 },
+  page: { padding: 22, paddingTop: 25, paddingBottom: 160, flexGrow: 1 },
   label: { fontSize: 11, letterSpacing: 1.1, fontWeight: '800', color: '#747A6E', marginBottom: 9, marginTop: 18 },
   input: { backgroundColor: '#FFFFFF', borderColor: '#E4E2DA', borderWidth: 1, borderRadius: 12, padding: 15, fontSize: 16, color: '#252923' },
   multiline: { minHeight: 84, textAlignVertical: 'top' },
