@@ -6,7 +6,7 @@ const ALLOWED=new Set(['application/pdf','image/jpeg','image/png','image/webp','
 export interface StoredDocumentFile { id:string; originalName:string; filePath:string; mimeType:string; fileSize:number; checksumSha256:string }
 export class DocumentStorage {
  private readonly root=new Directory(Paths.document,'thingtrace','files');
- async import(uri:string,name:string,mimeType:string|null):Promise<StoredDocumentFile>{
+ async import(uri:string,name:string,mimeType:string|null|undefined):Promise<StoredDocumentFile>{
   const ext=name.split('.').pop()?.toLowerCase()||'';
   const inferred:Record<string,string>={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',heic:'image/heic',heif:'image/heif',txt:'text/plain',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'};
   const raw=(mimeType||'').toLowerCase();
