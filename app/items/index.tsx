@@ -15,17 +15,17 @@ export default function ItemsScreen() {
   const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   const filtered = useMemo(() => {
     const query = normalize(search);
-    return items.filter((item) => !query || [item.name, item.description ?? '', item.notes ?? '', item.currentContainerName ?? ''].some((value) => normalize(value).includes(query)));
+    return items.filter((item) => !query || [item.name, item.description ?? '', item.notes ?? '', item.currentContainerName ?? '', item.currentLocationName ?? ''].some((value) => normalize(value).includes(query)));
   }, [items, search]);
   return (
     <ScrollView contentContainerStyle={styles.page}>
       <View style={styles.header}><Text style={styles.title}>I tuoi oggetti</Text><Text style={styles.count}>{search.trim() ? filtered.length + ' / ' + items.length : items.length}</Text></View>
-      <TextInput value={search} onChangeText={setSearch} placeholder="Cerca per nome, descrizione, note o contenitore..." placeholderTextColor="#92968E" style={styles.search} clearButtonMode="while-editing" />
+      <TextInput value={search} onChangeText={setSearch} placeholder="Cerca per nome, descrizione, note o collocazione..." placeholderTextColor="#92968E" style={styles.search} clearButtonMode="while-editing" />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {filtered.length ? filtered.map((item) => (
         <Pressable key={item.id} style={styles.card} onPress={() => router.push({ pathname: '/items/[id]', params: { id: item.id } })}>
           <View style={styles.icon}><Text style={styles.iconText}>◇</Text></View>
-          <View style={{ flex: 1 }}><Text style={styles.name}>{item.name}</Text><Text style={styles.meta}>Quantità: {item.quantity}{item.currentContainerName ? ' · ' + item.currentContainerName : ' · Non assegnato'}</Text></View>
+          <View style={{ flex: 1 }}><Text style={styles.name}>{item.name}</Text><Text style={styles.meta}>Quantità: {item.quantity}{item.currentContainerName ? ' · ' + item.currentContainerName : item.currentLocationName ? ' · ' + item.currentLocationName : ' · Non assegnato'}</Text></View>
           <Text style={styles.chevron}>›</Text>
         </Pressable>
       )) : <View style={styles.empty}><Text style={styles.emptyTitle}>{items.length ? 'Nessun oggetto trovato' : 'Nessun oggetto ancora'}</Text><Text style={styles.emptyText}>{items.length ? 'Prova con un’altra parola.' : 'Aggiungi il primo oggetto al tuo inventario.'}</Text></View>}
