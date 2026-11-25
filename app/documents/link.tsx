@@ -70,7 +70,7 @@ export default function LinkDocumentScreen() {
   const currentLocation = locations.find(location => location.id === parentId);
   const currentHomeName = homes.find(([home]) => home === homeId)?.[1];
 
-  async function attach(entity: DocumentEntity, label: string) {
+  async function attach(entity: DocumentEntity) {
     if (!id || busy) return;
     setBusy(true);
     try {
@@ -131,7 +131,7 @@ export default function LinkDocumentScreen() {
           <Text style={s.count}>{visibleItems.length}</Text><Text style={s.chevron}>{section === 'items' ? '⌄' : '›'}</Text>
         </Pressable>
         {section === 'items' && (visibleItems.length
-          ? visibleItems.map(item => entityRow(item.name, item.currentContainerName || item.currentLocationName || 'Non assegnato', () => attach({ type: 'ITEM', id: item.id }, item.name), 'i' + item.id))
+          ? visibleItems.map(item => entityRow(item.name, item.currentContainerName || item.currentLocationName || 'Non assegnato', () => attach({ type: 'ITEM', id: item.id }), 'i' + item.id))
           : <Text style={s.empty}>Nessun oggetto trovato.</Text>)}
       </View>
 
@@ -141,7 +141,7 @@ export default function LinkDocumentScreen() {
           <Text style={s.count}>{visibleContainers.length}</Text><Text style={s.chevron}>{section === 'containers' ? '⌄' : '›'}</Text>
         </Pressable>
         {section === 'containers' && (visibleContainers.length
-          ? visibleContainers.map(item => entityRow(item.name, item.locationName || 'Ubicazione non assegnata', () => attach({ type: 'CONTAINER', id: item.id }, item.name), 'c' + item.id))
+          ? visibleContainers.map(item => entityRow(item.name, item.locationName || 'Ubicazione non assegnata', () => attach({ type: 'CONTAINER', id: item.id }), 'c' + item.id))
           : <Text style={s.empty}>Nessun contenitore trovato.</Text>)}
       </View>
 
@@ -152,7 +152,7 @@ export default function LinkDocumentScreen() {
         </Pressable>
         {section === 'locations' && (term ? (
           visibleLocations.length
-            ? visibleLocations.map(item => entityRow(item.name, item.homeName + ' · ' + item.path, () => attach({ type: 'LOCATION', id: item.id }, item.name), 'l' + item.id))
+            ? visibleLocations.map(item => entityRow(item.name, item.homeName + ' · ' + item.path, () => attach({ type: 'LOCATION', id: item.id }), 'l' + item.id))
             : <Text style={s.empty}>Nessuna ubicazione trovata.</Text>
         ) : (
           <>
@@ -171,7 +171,7 @@ export default function LinkDocumentScreen() {
                   <Text style={s.name}>{location.name}</Text>
                   <Text style={s.meta}>{location.type === 'AREA' ? 'Stanza/Zona' : location.type === 'ROOM' ? 'Luogo' : 'Posizione'}</Text>
                 </Pressable>
-                <Pressable disabled={busy} onPress={() => attach({ type: 'LOCATION', id: location.id }, location.name)}><Text style={s.add}>＋</Text></Pressable>
+                <Pressable disabled={busy} onPress={() => attach({ type: 'LOCATION', id: location.id })}><Text style={s.add}>＋</Text></Pressable>
                 {location.type !== 'POSITION' && <Pressable onPress={() => setParentId(location.id)}><Text style={s.open}>Apri ›</Text></Pressable>}
               </View>
             ))}
