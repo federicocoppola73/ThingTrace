@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createItem, type ItemDestination } from '@/repositories/itemRepository';
 import { listContainers, type ContainerSummary } from '@/repositories/containerRepository';
@@ -8,12 +8,13 @@ import { ContainerPicker } from '@/components/ContainerPicker';
 
 export default function NewItemScreen() {
   const router = useRouter();
+  const { containerId } = useLocalSearchParams<{ containerId?: string }>();
   const scrollRef = useRef<ScrollView>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [notes, setNotes] = useState('');
-  const [destination, setDestination] = useState<ItemDestination>({ kind: 'none', id: null });
+  const [destination, setDestination] = useState<ItemDestination>(() => containerId ? { kind: 'container', id: containerId } : { kind: 'none', id: null });
   const [containers, setContainers] = useState<ContainerSummary[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [saving, setSaving] = useState(false);
