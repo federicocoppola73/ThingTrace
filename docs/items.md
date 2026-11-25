@@ -19,7 +19,7 @@ L'assegnazione iniziale a un contenitore crea un evento con provenienza non asse
 
 L'aggiornamento del contenitore attuale e l'inserimento dell'evento avvengono nella stessa transazione SQLite. Se una delle due operazioni fallisce, entrambe vengono annullate. Se la destinazione coincide con il contenitore attuale, non viene creato un evento duplicato.
 
-I riferimenti ai contenitori nello storico usano `ON DELETE SET NULL`, mentre i nomi sono memorizzati come snapshot. La cancellazione futura di un contenitore non cancella quindi gli eventi storici né le informazioni sul nome registrato al momento dello spostamento.
+I riferimenti ai contenitori nello storico usano `ON DELETE SET NULL`, mentre i nomi sono memorizzati come snapshot. La cancellazione futura di un contenitore non cancella quindi gli eventi storici né le informazioni sul nome registrato al momento dello spostamento. Un trigger registra inoltre l'uscita dal contenitore per ogni oggetto che vi era ancora assegnato; l'azione referenziale scollega poi l'oggetto e conserva il nome storico.
 
 ## Migrazione
 
