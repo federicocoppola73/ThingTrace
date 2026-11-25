@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { getItem, updateItem } from '@/repositories/itemRepository';
 
 export default function EditItemScreen() {
@@ -26,19 +26,23 @@ export default function EditItemScreen() {
     finally { setSaving(false); }
   }
   return (
-    <ScrollView contentContainerStyle={styles.page}>
-      <Text style={styles.label}>NOME OGGETTO</Text><TextInput value={name} onChangeText={setName} style={styles.input} />
-      <Text style={styles.label}>DESCRIZIONE</Text><TextInput value={description} onChangeText={setDescription} style={[styles.input, styles.multiline]} multiline />
-      <Text style={styles.label}>QUANTITÀ</Text><TextInput value={quantity} onChangeText={setQuantity} keyboardType="number-pad" style={styles.input} />
-      <Text style={styles.label}>NOTE</Text><TextInput value={notes} onChangeText={setNotes} style={[styles.input, styles.multiline]} multiline />
-      <Pressable disabled={saving} onPress={save} style={styles.button}><Text style={styles.buttonText}>{saving ? 'Salvataggio...' : 'Salva modifiche'}</Text></Pressable>
-    </ScrollView>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}>
+      <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <Text style={styles.label}>NOME OGGETTO</Text><TextInput value={name} onChangeText={setName} style={styles.input} returnKeyType="next" />
+        <Text style={styles.label}>DESCRIZIONE</Text><TextInput value={description} onChangeText={setDescription} style={[styles.input, styles.multiline]} multiline />
+        <Text style={styles.label}>QUANTITÀ</Text><TextInput value={quantity} onChangeText={setQuantity} keyboardType="number-pad" style={styles.input} />
+        <Text style={styles.label}>NOTE</Text><TextInput value={notes} onChangeText={setNotes} style={[styles.input, styles.multiline]} multiline />
+        <Pressable disabled={saving} onPress={save} style={styles.button}><Text style={styles.buttonText}>{saving ? 'Salvataggio...' : 'Salva modifiche'}</Text></Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 const styles = StyleSheet.create({
-  page: { padding: 22, paddingTop: 25, paddingBottom: 42 },
+  screen: { flex: 1 },
+  page: { padding: 22, paddingTop: 25, paddingBottom: 56, flexGrow: 1 },
   label: { fontSize: 11, letterSpacing: 1.1, fontWeight: '800', color: '#747A6E', marginBottom: 9, marginTop: 18 },
   input: { backgroundColor: '#FFFFFF', borderColor: '#E4E2DA', borderWidth: 1, borderRadius: 12, padding: 15, fontSize: 16, color: '#252923' },
   multiline: { minHeight: 90, textAlignVertical: 'top' },
-  button: { marginTop: 28, backgroundColor: '#43533C', borderRadius: 14, padding: 17, alignItems: 'center' }, buttonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 }
+  button: { marginTop: 28, backgroundColor: '#43533C', borderRadius: 14, padding: 17, alignItems: 'center' },
+  buttonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 }
 });
