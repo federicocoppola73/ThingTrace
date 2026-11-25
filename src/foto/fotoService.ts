@@ -92,6 +92,9 @@ export class FotoService {
     const photo = await this.repository.getById(photoId);
     if (!photo) throw new PhotoError('PHOTO_NOT_FOUND', 'The photo was not found.');
     if (!photo.deletedAt) throw new PhotoError('PHOTO_NOT_IN_TRASH', 'The photo is not in the trash.');
+    if (await this.repository.countLinks(photoId) === 0) {
+      throw new PhotoError('PHOTO_HAS_NO_LINKS', 'This photo is no longer associated with an item or document and cannot be restored.');
+    }
     const integrity = await this.verifyPhoto(photoId);
     if (!integrity.exists || !integrity.sizeMatches || integrity.checksumMatches === false) {
       throw new PhotoError('PHOTO_FILE_MISSING', 'The archived image is missing or damaged and cannot be restored.');
