@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { File } from 'expo-file-system';
 import { DocumentStorage } from './documentStorage';
-import { insertDocumentAttachment, type DocumentAttachment } from '@/repositories/documentRepository';
+import { insertDocumentAttachment, listDocumentAttachments, type DocumentAttachment } from '@/repositories/documentRepository';
 
 const DOCUMENT_MIME_TYPES = [
  'application/pdf','image/*','text/plain',
@@ -31,12 +31,16 @@ export async function pickDocumentAttachments(documentId:string){
  return{canceled:false,imported,failures};
 }
 
-export async function captureDocumentPhoto(documentId:string){
+export async function captureDocumentPhoto(documentId:string,documentTitle:string){
  const permission=await ImagePicker.requestCameraPermissionsAsync();
  if(!permission.granted)throw Error('Permesso fotocamera negato. Consenti a ThingTrace di utilizzare la fotocamera.');
  const result=await ImagePicker.launchCameraAsync({mediaTypes:['images'],allowsEditing:false,quality:1,exif:false});
  if(result.canceled||!result.assets?.length)return{canceled:true};
- const asset=result.assets[0],name=asset.fileName||'documento-'+Date.now()+'.jpg';
+ const asset=result.assets[0];
+ const existing=await listDocumentAttachments(documentId);
+ const photoCount=existing.filter(a=>a.mimeType.startsWith('image/')).length+1;
+ const slug=documentTitle.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,48)||'documento';
+ const name=slug+'_foto_'+String(photoCount).padStart(2,'0')+'.jpg';
  const storage=new DocumentStorage();
  let stored:Awaited<ReturnType<DocumentStorage['import']>>|null=null;
  try{
