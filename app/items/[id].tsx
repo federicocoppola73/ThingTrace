@@ -67,11 +67,12 @@ export default function ItemDetailScreen() {
     if (!id || !item) return;
     Alert.alert(
       'Eliminare questo oggetto?',
-      'L’oggetto e il suo storico degli spostamenti verranno eliminati. Le fotografie associate non condivise con altri elementi saranno conservate nel cestino e potranno essere gestite da lì. Questa operazione non è annullabile.',
+      'L’oggetto, il suo storico e le fotografie associate esclusivamente a esso verranno eliminati definitivamente. Le foto eventualmente condivise con altre entità resteranno disponibili per quelle entità. Questa operazione non è annullabile.',
       [
         { text: 'Annulla', style: 'cancel' },
         { text: 'Elimina oggetto', style: 'destructive', onPress: async () => {
           try {
+            await new FotoService(await getDatabase()).deleteEntityPhotos({ type: 'ITEM', id });
             await deleteItem(id);
             router.replace('/items');
           } catch (error) {
@@ -164,8 +165,10 @@ export default function ItemDetailScreen() {
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.modalPage} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <Text style={styles.modalTitle}>Sposta oggetto</Text>
-          <Text style={styles.modalHint}>Seleziona il nuovo contenitore. Ogni variazione verrà registrata nello storico.</Text>
+          <Text style={styles.modalHint}>Contenitore attuale: {item.currentContainerName ?? 'Nessuno'}. Scegli la destinazione del movimento.</Text>
+          <Text style={styles.label}>NUOVO CONTENITORE</Text>
           <ContainerPicker containers={containers} locations={locations} selectedContainerId={destinationId} onSelect={setDestinationId} />
+          {destinationId !== null ? <Pressable style={styles.disassociateButton} onPress={() => setDestinationId(null)}><Text style={styles.disassociateText}>Rimuovi dal contenitore attuale</Text></Pressable> : <Text style={styles.unassignedHint}>L’oggetto risulterà non assegnato a un contenitore.</Text>}
           <Text style={styles.label}>NOTA SULLO SPOSTAMENTO (FACOLTATIVA)</Text>
           <TextInput value={movementNote} onChangeText={setMovementNote} placeholder="Es. Trasferito dopo il trasloco..." style={styles.noteInput} multiline />
           <Pressable style={styles.button} onPress={confirmMove}><Text style={styles.buttonText}>Conferma spostamento</Text></Pressable>
@@ -223,6 +226,9 @@ const styles = StyleSheet.create({
   containerSelectedText: { color: '#35472F', fontWeight: '800' }, containerMeta: { color: '#858A80', fontSize: 12, marginTop: 4 },
   label: { fontSize: 11, letterSpacing: 1.1, fontWeight: '800', color: '#747A6E', marginBottom: 9, marginTop: 16 },
   noteInput: { backgroundColor: '#FFFFFF', borderColor: '#E4E2DA', borderWidth: 1, borderRadius: 12, padding: 14, minHeight: 76, textAlignVertical: 'top', color: '#252923' },
+  disassociateButton: { marginTop: 12, padding: 14, borderRadius: 11, backgroundColor: '#F7EAE7', alignItems: 'center' },
+  disassociateText: { color: '#9A4137', fontWeight: '800' },
+  unassignedHint: { color: '#68715E', marginTop: 10, fontSize: 13, textAlign: 'center' },
   cancelButton: { alignItems: 'center', padding: 15, marginTop: 4 }, cancelText: { color: '#59634F', fontWeight: '800' },
   cameraScreen: { flex: 1, backgroundColor: '#000000', justifyContent: 'flex-end' }, camera: { flex: 1, width: '100%' },
   cameraControls: { minHeight: 120, paddingHorizontal: 28, paddingBottom: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
