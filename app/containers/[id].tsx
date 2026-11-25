@@ -142,7 +142,7 @@ export default function ContainerDetailScreen() {
                   style={styles.photo}
                   resizeMode="cover"
                   onError={(event) => {
-                    Alert.alert('Immagine non visualizzabile', event.nativeEvent.error || `Impossibile leggere il file: ${uri}`);
+                    Alert.alert('Immagine non visualizzabile', event.nativeEvent.error || `Impossibile leggere il file: ${photoUris[photo.id]}`);
                   }}
                 />
               </Pressable><Pressable style={styles.photoDelete} onPress={() => movePhotoToTrash(photo)}><Text style={styles.photoDeleteText}>×</Text></Pressable></View>
