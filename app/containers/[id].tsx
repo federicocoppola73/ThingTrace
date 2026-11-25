@@ -141,7 +141,7 @@ export default function ContainerDetailScreen() {
           <Text style={styles.muted}>{items.length}</Text>
           <Pressable
             style={styles.addItemButton}
-            onPress={() => router.push({ pathname: '/items/new', params: { containerId: container.id } })}
+            onPress={() => router.push({ pathname: '/containers/add-items', params: { containerId: container.id } })}
           >
             <Text style={styles.addItemButtonText}>＋ Aggiungi</Text>
           </Pressable>
