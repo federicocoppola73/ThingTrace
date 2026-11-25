@@ -11,7 +11,7 @@ type Props = {
 };
 
 function normalize(value: string) {
-  return value.toLocaleLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+  return value.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 export function ContainerPicker({ containers, locations, selectedContainerId, onSelect }: Props) {
