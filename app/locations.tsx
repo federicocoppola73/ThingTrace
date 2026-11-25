@@ -1,7 +1,7 @@
 import { DocumentLinksSection } from '@/components/DocumentLinksSection';
 import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   createHome, createLocation, deleteHome, deleteLocation, getHomeDeleteImpact, getLocationDeleteImpact, listHomes, listLocations,
@@ -16,6 +16,7 @@ type Editor =
 const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Stanza/Zona', ROOM: 'Luogo', POSITION: 'Posizione' };
 
 export default function LocationsScreen() {
+  const router = useRouter();
   const { documentId } = useLocalSearchParams<{ documentId?: string }>();
   const [homes, setHomes] = useState<HomeRecord[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
@@ -50,7 +51,7 @@ export default function LocationsScreen() {
     if (!documentId) return;
     try {
       await linkDocument(documentId, { type: 'LOCATION', id: location.id });
-      Alert.alert('Documento associato', `Il documento è stato collegato a ${location.homeName} · ${location.path}.`);
+      router.replace({ pathname: '/documents/[id]', params: { id: documentId } });
     } catch (error) {
       Alert.alert('Associazione non riuscita', error instanceof Error ? error.message : 'Impossibile associare il documento.');
     }
@@ -140,13 +141,15 @@ export default function LocationsScreen() {
     return (
       <View key={location.id} style={[styles.locationCard, { marginLeft: depth * 14 }]}>
         <View style={styles.locationHeader}>
-          <Pressable onPress={() => toggleLocation(location.id)} style={{ flex: 1 }}>
+          <Pressable onPress={() => toggleLocation(location.id)} style={styles.locationTitleArea}>
             <Text style={styles.locationType}>{TYPE_LABEL[location.type].toUpperCase()} · {expandedLocations.has(location.id) ? 'APERTO' : 'CHIUSO'}</Text>
-            <Text style={styles.locationName}>{location.name}</Text>
+            <Text style={styles.locationName} numberOfLines={2}>{location.name}</Text>
           </Pressable>
-          {documentId ? <Pressable onPress={() => associateDocument(location)} style={styles.smallAction}><Text style={styles.actionText}>Associa documento</Text></Pressable> : null}
-          <Pressable onPress={() => begin({ kind: 'location', mode: 'rename', id: location.id }, location.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
-          <Pressable onPress={() => confirmDeleteLocation(location)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
+          <View style={styles.locationActions}>
+            {documentId ? <Pressable onPress={() => associateDocument(location)} style={styles.smallAction}><Text style={styles.actionText}>Associa documento</Text></Pressable> : null}
+            <Pressable onPress={() => begin({ kind: 'location', mode: 'rename', id: location.id }, location.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
+            <Pressable onPress={() => confirmDeleteLocation(location)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
+          </View>
         </View>
         {expandedLocations.has(location.id) ? <>
         <DocumentLinksSection entity={{ type: 'LOCATION', id: location.id }} hideWhenEmpty />
@@ -247,7 +250,9 @@ const styles = StyleSheet.create({
   addArea: { backgroundColor: '#EEF0E8', borderRadius: 10, padding: 11, alignItems: 'center', marginTop: 13 },
   addAreaText: { color: '#43533C', fontWeight: '800', fontSize: 13 },
   locationCard: { borderLeftWidth: 2, borderLeftColor: '#DDE2D5', paddingLeft: 10, marginTop: 12 },
-  locationHeader: { flexDirection: 'row', alignItems: 'center' },
+  locationHeader: { flexDirection: 'column', alignItems: 'stretch', width: '100%' },
+  locationTitleArea: { width: '100%', paddingVertical: 2 },
+  locationActions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', marginTop: 5, marginLeft: -8 },
   locationType: { color: '#8A907F', fontSize: 9, letterSpacing: 1, fontWeight: '800' },
   locationName: { color: '#30352D', fontSize: 15, fontWeight: '700', marginTop: 2 },
   addChild: { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 5 },
