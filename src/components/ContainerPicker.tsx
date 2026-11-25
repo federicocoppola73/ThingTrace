@@ -54,10 +54,10 @@ export function ContainerPicker({ containers, locations, selectedContainerId, on
     <>
       <Pressable onPress={openPicker} style={styles.selector}>
         <View style={styles.selectorCopy}>
-          <Text style={styles.selectorLabel}>{selected ? 'CONTENITORE SELEZIONATO' : 'NESSUN CONTENITORE SELEZIONATO'}</Text>
-          <Text style={styles.selectorValue}>{selected ? selected.name + (selected.locationName ? ' · ' + selected.locationName : '') : 'Scegli un contenitore'}</Text>
+          <Text style={styles.selectorLabel}>{selected ? 'CONTENITORE SCELTO' : 'DESTINAZIONE NON SELEZIONATA'}</Text>
+          <Text style={styles.selectorValue}>{selected ? selected.name + (selected.locationName ? ' · ' + selected.locationName : '') : 'Seleziona un contenitore'}</Text>
         </View>
-        <Text style={styles.selectorAction}>Cambia</Text>
+        <Text style={styles.selectorAction}>Apri</Text>
       </Pressable>
       <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setVisible(false)}>
         <View style={styles.modal}>
