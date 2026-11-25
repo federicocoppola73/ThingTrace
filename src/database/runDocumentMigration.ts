@@ -39,6 +39,12 @@ export async function runDocumentMigration(db: SQLiteDatabase): Promise<void> {
       );
       CREATE INDEX IF NOT EXISTS idx_document_links_entity ON document_links(entity_type, entity_id);
       CREATE INDEX IF NOT EXISTS idx_document_links_document ON document_links(document_id);
+      DROP TRIGGER IF EXISTS trg_document_link_item_delete;
+      CREATE TRIGGER trg_document_link_item_delete AFTER DELETE ON items BEGIN DELETE FROM document_links WHERE entity_type='ITEM' AND entity_id=OLD.id; END;
+      DROP TRIGGER IF EXISTS trg_document_link_container_delete;
+      CREATE TRIGGER trg_document_link_container_delete AFTER DELETE ON containers BEGIN DELETE FROM document_links WHERE entity_type='CONTAINER' AND entity_id=OLD.id; END;
+      DROP TRIGGER IF EXISTS trg_document_link_location_delete;
+      CREATE TRIGGER trg_document_link_location_delete AFTER DELETE ON locations BEGIN DELETE FROM document_links WHERE entity_type='LOCATION' AND entity_id=OLD.id; END;
     `);
   });
 }
