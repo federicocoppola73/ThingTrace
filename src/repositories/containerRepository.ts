@@ -57,7 +57,14 @@ export async function createContainer(input: {
 export async function listContainers(): Promise<ContainerSummary[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<ContainerRow>(
-    `SELECT c.id, c.name, c.type, c.notes, c.location_id, l.name AS location_name,
+    `WITH RECURSIVE location_paths(id, home_id, path) AS (
+       SELECT id, home_id, name FROM locations WHERE parent_id IS NULL
+       UNION ALL
+       SELECT child.id, child.home_id, location_paths.path || ' › ' || child.name
+       FROM locations child JOIN location_paths ON child.parent_id = location_paths.id
+     )
+     SELECT c.id, c.name, c.type, c.notes, c.location_id,
+            (SELECT h.name || ' · ' || lp.path FROM location_paths lp JOIN homes h ON h.id = lp.home_id WHERE lp.id = c.location_id) AS location_name,
             COUNT(p.id) AS photo_count
      FROM containers c
      LEFT JOIN locations l ON l.id = c.location_id
@@ -95,9 +102,15 @@ export async function updateContainer(id: string, input: {
 export async function getContainer(id: string): Promise<ContainerDetail | null> {
   const db = await getDatabase();
   const row = await db.getFirstAsync<ContainerRow>(
-    `SELECT c.id, c.name, c.type, c.notes, c.location_id, l.name AS location_name
+    `WITH RECURSIVE location_paths(id, home_id, path) AS (
+       SELECT id, home_id, name FROM locations WHERE parent_id IS NULL
+       UNION ALL
+       SELECT child.id, child.home_id, location_paths.path || ' › ' || child.name
+       FROM locations child JOIN location_paths ON child.parent_id = location_paths.id
+     )
+     SELECT c.id, c.name, c.type, c.notes, c.location_id,
+            (SELECT h.name || ' · ' || lp.path FROM location_paths lp JOIN homes h ON h.id = lp.home_id WHERE lp.id = c.location_id) AS location_name
      FROM containers c
-     LEFT JOIN locations l ON l.id = c.location_id
      WHERE c.id = ?`,
     id
   );
