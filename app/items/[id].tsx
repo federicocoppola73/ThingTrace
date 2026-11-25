@@ -11,6 +11,7 @@ import { listLocations, type LocationRecord } from '@/repositories/locationRepos
 import { ContainerPicker } from '@/components/ContainerPicker';
 import { getDatabase } from '@/database/database';
 import { FotoService } from '@/foto/fotoService';
+import { DocumentLinksSection } from '@/components/DocumentLinksSection';
 import { pickAndImportPhotos } from '@/foto/photoPicker';
 import type { PhotoRecord } from '@/foto/types';
 
@@ -172,6 +173,8 @@ export default function ItemDetailScreen() {
         ))}</View> : <View style={styles.empty}><Text style={styles.emptyText}>Non ci sono ancora fotografie associate a questo oggetto.</Text></View>}
         <Pressable style={styles.button} onPress={openCamera}><Text style={styles.buttonText}>◎  Scatta una foto</Text></Pressable>
         <Pressable style={[styles.button, styles.secondaryButton]} onPress={addPhotos}><Text style={styles.secondaryText}>＋  Scegli dalla galleria</Text></Pressable>
+
+        <DocumentLinksSection entity={{ type: 'ITEM', id }} />
 
         <View style={[styles.sectionHeader, { marginTop: 30 }]}><Text style={styles.sectionTitle}>Storico spostamenti</Text><Text style={styles.muted}>{movements.length}</Text></View>
         {movements.length ? movements.map((movement) => (
