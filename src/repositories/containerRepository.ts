@@ -19,6 +19,7 @@ type ContainerRow = {
   type: ContainerType;
   notes: string | null;
   location_name: string | null;
+  photo_count?: number;
 };
 
 export interface ContainerSummary {
@@ -27,6 +28,7 @@ export interface ContainerSummary {
   type: ContainerType;
   typeLabel: string;
   locationName: string | null;
+  photoCount: number;
 }
 
 export interface ContainerDetail extends ContainerSummary {
@@ -51,9 +53,13 @@ export async function createContainer(input: {
 export async function listContainers(): Promise<ContainerSummary[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<ContainerRow>(
-    `SELECT c.id, c.name, c.type, c.notes, l.name AS location_name
+    `SELECT c.id, c.name, c.type, c.notes, l.name AS location_name,
+            COUNT(p.id) AS photo_count
      FROM containers c
      LEFT JOIN locations l ON l.id = c.location_id
+     LEFT JOIN container_photos cp ON cp.container_id = c.id
+     LEFT JOIN photos p ON p.id = cp.photo_id AND p.deleted_at IS NULL
+     GROUP BY c.id
      ORDER BY c.created_at DESC`
   );
   return rows.map((row) => ({
@@ -61,7 +67,8 @@ export async function listContainers(): Promise<ContainerSummary[]> {
     name: row.name,
     type: row.type,
     typeLabel: TYPE_LABELS[row.type],
-    locationName: row.location_name
+    locationName: row.location_name,
+    photoCount: Number(row.photo_count ?? 0)
   }));
 }
 
@@ -81,6 +88,7 @@ export async function getContainer(id: string): Promise<ContainerDetail | null> 
     type: row.type,
     typeLabel: TYPE_LABELS[row.type],
     locationName: row.location_name,
+    photoCount: 0,
     notes: row.notes
   };
 }
