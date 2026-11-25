@@ -74,6 +74,18 @@ export async function listContainers(): Promise<ContainerSummary[]> {
   }));
 }
 
+export async function updateContainer(id: string, input: {
+  name: string;
+  type: ContainerType;
+}): Promise<void> {
+  const db = await getDatabase();
+  const result = await db.runAsync(
+    'UPDATE containers SET name = ?, type = ?, updated_at = ? WHERE id = ?',
+    input.name.trim(), input.type, new Date().toISOString(), id
+  );
+  if (result.changes === 0) throw new Error('Contenitore non trovato.');
+}
+
 export async function getContainer(id: string): Promise<ContainerDetail | null> {
   const db = await getDatabase();
   const row = await db.getFirstAsync<ContainerRow>(
