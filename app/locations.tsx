@@ -11,7 +11,7 @@ type Editor =
   | { kind: 'home'; mode: 'create' | 'rename'; id?: string }
   | { kind: 'location'; mode: 'create' | 'rename'; id?: string; homeId?: string; parentId?: string | null; type?: LocationType };
 
-const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Area', ROOM: 'Stanza', POSITION: 'Posizione' };
+const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Stanza/Zona', ROOM: 'Luogo', POSITION: 'Posizione' };
 
 export default function LocationsScreen() {
   const [homes, setHomes] = useState<HomeRecord[]>([]);
@@ -94,7 +94,7 @@ export default function LocationsScreen() {
         </View>
         {location.type === 'AREA' ? (
           <Pressable style={styles.addChild} onPress={() => begin({ kind: 'location', mode: 'create', homeId, parentId: location.id, type: 'ROOM' })}>
-            <Text style={styles.addChildText}>＋ Aggiungi stanza</Text>
+            <Text style={styles.addChildText}>＋ Aggiungi luogo</Text>
           </Pressable>
         ) : null}
         {location.type === 'ROOM' ? (
@@ -113,7 +113,7 @@ export default function LocationsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
-      <Text style={styles.intro}>Organizza i luoghi in cui conservi contenitori e oggetti. La struttura è: sede → area → stanza → posizione.</Text>
+      <Text style={styles.intro}>Organizza dove conservi contenitori e oggetti. La struttura è: sede → stanza/zona → luogo → posizione.</Text>
 
       {editor ? (
         <View style={styles.editor}>
@@ -142,10 +142,10 @@ export default function LocationsScreen() {
               <Pressable onPress={() => confirmDeleteHome(home)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
             </View>
             <Pressable style={styles.addArea} onPress={() => begin({ kind: 'location', mode: 'create', homeId: home.id, parentId: null, type: 'AREA' })}>
-              <Text style={styles.addAreaText}>＋ Aggiungi area</Text>
+              <Text style={styles.addAreaText}>＋ Aggiungi stanza/zona</Text>
             </Pressable>
             {areas.map((area) => renderLocation(area, home.id, 0))}
-            {areas.length === 0 ? <Text style={styles.emptyText}>Nessuna area. Aggiungi ad esempio Garage, Piano terra o Magazzino.</Text> : null}
+            {areas.length === 0 ? <Text style={styles.emptyText}>Nessuna stanza/zona. Aggiungi ad esempio Garage, Cucina, Ufficio o Giardino.</Text> : null}
           </View>
         );
       })}
@@ -153,7 +153,7 @@ export default function LocationsScreen() {
       {homes.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>Nessuna sede configurata</Text>
-          <Text style={styles.emptyText}>Crea una sede, ad esempio Casa, Ufficio o Magazzino. Poi potrai aggiungere aree, stanze e posizioni.</Text>
+          <Text style={styles.emptyText}>Crea una sede, ad esempio Casa, Ufficio o Magazzino. Poi potrai aggiungere stanze/zone, luoghi e posizioni.</Text>
         </View>
       ) : null}
 
