@@ -19,7 +19,7 @@ The repository now includes an Expo SDK 58 application scaffold and the first en
 
 ## Location management
 
-- Hierarchical locations: home/site → area → room → position.
+- Hierarchical locations: site → room/zone → place → position.
 - Assign a location when creating or editing a container.
 - Search containers by their full location path.
 - Deletion safeguards prevent removing locations still used by containers or child locations.
