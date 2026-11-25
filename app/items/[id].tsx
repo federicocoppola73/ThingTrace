@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { CameraView as CameraViewType } from 'expo-camera';
-import { deleteItem, getItem, listItemMovements, moveItem, type ItemMovement, type ItemSummary } from '@/repositories/itemRepository';
+import { deleteItem, getItem, listItemMovements, moveItem, type ItemDestination, type ItemMovement, type ItemSummary } from '@/repositories/itemRepository';
 import { listContainers, type ContainerSummary } from '@/repositories/containerRepository';
 import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
 import { ContainerPicker } from '@/components/ContainerPicker';
@@ -26,7 +26,7 @@ export default function ItemDetailScreen() {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [moveOpen, setMoveOpen] = useState(false);
-  const [destinationId, setDestinationId] = useState<string | null>(null);
+  const [destination, setDestination] = useState<ItemDestination>({ kind: 'none', id: null });
   const [movementNote, setMovementNote] = useState('');
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
@@ -51,17 +51,37 @@ export default function ItemDetailScreen() {
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   function openMove() {
-    setDestinationId(item?.currentContainerId ?? null);
+    setDestination(item?.currentContainerId ? { kind: 'container', id: item.currentContainerId } : item?.currentLocationId ? { kind: 'location', id: item.currentLocationId } : { kind: 'none', id: null });
     setMovementNote('');
     setMoveOpen(true);
   }
-  async function confirmMove() {
+  function destinationText(value: ItemDestination) {
+    if (value.kind === 'none') return 'Non assegnato';
+    if (value.kind === 'container') return containers.find((row) => row.id === value.id)?.name ?? 'Contenitore selezionato';
+    const place = locations.find((row) => row.id === value.id);
+    return place ? place.homeName + ' · ' + place.path : 'Ubicazione selezionata';
+  }
+  async function saveMove() {
     if (!id) return;
-    try {
-      await moveItem(id, destinationId, movementNote);
-      setMoveOpen(false);
-      await refresh();
-    } catch (error) { Alert.alert('Spostamento non riuscito', error instanceof Error ? error.message : 'Impossibile spostare l’oggetto.'); }
+    try { await moveItem(id, destination, movementNote); setMoveOpen(false); await refresh(); }
+    catch (error) { Alert.alert('Spostamento non riuscito', error instanceof Error ? error.message : 'Impossibile spostare l’oggetto.'); }
+  }
+  function confirmMove() {
+    const current: ItemDestination = item.currentContainerId ? { kind: 'container', id: item.currentContainerId } : item.currentLocationId ? { kind: 'location', id: item.currentLocationId } : { kind: 'none', id: null };
+    Alert.alert('Confermare lo spostamento?', destinationText(current) + '  →  ' + destinationText(destination), [
+      { text: 'Annulla', style: 'cancel' }, { text: 'Conferma', onPress: () => { void saveMove(); } },
+    ]);
+  }
+  function confirmUnassign() {
+    if (!id || (!item.currentContainerId && !item.currentLocationId)) return;
+    const current = item.currentContainerName ?? item.currentLocationName ?? 'collocazione attuale';
+    Alert.alert('Rimuovere la collocazione?', 'L’oggetto verrà disassociato da ' + current + ' e resterà nell’inventario come non assegnato.', [
+      { text: 'Annulla', style: 'cancel' },
+      { text: 'Rimuovi', style: 'destructive', onPress: async () => {
+        try { await moveItem(id, { kind: 'none', id: null }, 'Rimosso dalla collocazione'); await refresh(); }
+        catch (error) { Alert.alert('Operazione non riuscita', error instanceof Error ? error.message : 'Impossibile rimuovere la collocazione.'); }
+      } },
+    ]);
   }
   function confirmDeleteItem() {
     if (!id || !item) return;
@@ -130,7 +150,10 @@ export default function ItemDetailScreen() {
           <Text style={styles.eyebrow}>OGGETTO</Text>
           <Text style={styles.title}>{item.name}</Text>
           <Text style={styles.quantity}>Quantità: {item.quantity}</Text>
-          <Text style={styles.location}>{item.currentContainerName ? 'Nel contenitore: ' + item.currentContainerName : 'Non assegnato a un contenitore'}</Text>
+          <Text style={styles.location}>{item.currentContainerName ? 'Contenitore: ' + item.currentContainerName : item.currentLocationName ? 'Ubicazione: ' + item.currentLocationName : 'Non assegnato'}</Text>
+          {(item.currentContainerId || item.currentLocationId) ? <View style={styles.locationActions}>
+            <Pressable style={styles.disassociateButton} onPress={confirmUnassign}><Text style={styles.disassociateText}>Rimuovi</Text></Pressable>
+          </View> : <Pressable style={[styles.moveButton, { alignSelf: 'flex-start', marginTop: 12 }]} onPress={openMove}><Text style={styles.moveText}>Assegna collocazione</Text></Pressable>}
           {item.description ? <Text style={styles.body}>{item.description}</Text> : null}
           {item.notes ? <Text style={styles.body}>{item.notes}</Text> : null}
           <View style={styles.actions}>
@@ -154,21 +177,20 @@ export default function ItemDetailScreen() {
         {movements.length ? movements.map((movement) => (
           <View key={movement.id} style={styles.historyCard}>
             <Text style={styles.historyDate}>{dateLabel(movement.movedAt)}</Text>
-            <Text style={styles.historyRoute}>{movement.fromContainerName ?? 'Non assegnato'}  →  {movement.toContainerName ?? 'Non assegnato'}</Text>
+            <Text style={styles.historyRoute}>{movement.fromContainerName ?? movement.fromLocationName ?? 'Non assegnato'}  →  {movement.toContainerName ?? movement.toLocationName ?? 'Non assegnato'}</Text>
             {movement.note ? <Text style={styles.historyNote}>{movement.note}</Text> : null}
           </View>
-        )) : <View style={styles.empty}><Text style={styles.emptyText}>Nessuno spostamento registrato. Il primo verrà aggiunto quando assegnerai l’oggetto a un contenitore.</Text></View>}
-        <Text style={styles.footnote}>Lo storico conserva anche il nome dei contenitori se questi vengono successivamente eliminati.</Text>
+        )) : <View style={styles.empty}><Text style={styles.emptyText}>Nessuno spostamento registrato. Il primo verrà aggiunto quando assegnerai una collocazione.</Text></View>}
+        <Text style={styles.footnote}>Lo storico conserva i nomi delle collocazioni anche se contenitori o ubicazioni vengono successivamente eliminati.</Text>
       </ScrollView>
 
       <Modal visible={moveOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setMoveOpen(false)}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.modalPage} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <Text style={styles.modalTitle}>Sposta oggetto</Text>
-          <Text style={styles.modalHint}>Contenitore attuale: {item.currentContainerName ?? 'Nessuno'}. Scegli la destinazione del movimento.</Text>
-          <Text style={styles.label}>NUOVO CONTENITORE</Text>
-          <ContainerPicker containers={containers} locations={locations} selectedContainerId={destinationId} onSelect={setDestinationId} />
-          {destinationId !== null ? <Pressable style={styles.disassociateButton} onPress={() => setDestinationId(null)}><Text style={styles.disassociateText}>Rimuovi dal contenitore attuale</Text></Pressable> : <Text style={styles.unassignedHint}>L’oggetto risulterà non assegnato a un contenitore.</Text>}
+          <Text style={styles.modalHint}>Collocazione attuale: {item.currentContainerName ?? item.currentLocationName ?? 'Non assegnato'}. Seleziona la nuova destinazione.</Text>
+          <Text style={styles.label}>NUOVA COLLOCAZIONE</Text>
+          <ContainerPicker containers={containers} locations={locations} selected={destination} onSelect={setDestination} />
           <Text style={styles.label}>NOTA SULLO SPOSTAMENTO (FACOLTATIVA)</Text>
           <TextInput value={movementNote} onChangeText={setMovementNote} placeholder="Es. Trasferito dopo il trasloco..." style={styles.noteInput} multiline />
           <Pressable style={styles.button} onPress={confirmMove}><Text style={styles.buttonText}>Conferma spostamento</Text></Pressable>
@@ -206,7 +228,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: '#68715E', fontSize: 10, letterSpacing: 1.4, fontWeight: '800', marginBottom: 8 },
   title: { fontSize: 27, fontWeight: '800', color: '#252923' }, quantity: { color: '#43533C', fontWeight: '800', marginTop: 10 },
   location: { color: '#5E6258', marginTop: 7, lineHeight: 20 }, body: { color: '#5E6258', lineHeight: 21, marginTop: 12 },
-  actions: { flexDirection: 'row', gap: 9, marginTop: 18 }, editButton: { backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 11 },
+  actions: { flexDirection: 'row', gap: 9, marginTop: 18 }, locationActions: { flexDirection: 'row', gap: 10, marginTop: 12, alignItems: 'center' }, editButton: { backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 11 },
   editText: { color: '#43533C', fontWeight: '800', fontSize: 13 }, moveButton: { backgroundColor: '#43533C', borderRadius: 10, paddingHorizontal: 18, paddingVertical: 11 },
   moveText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
   deleteItemButton: { backgroundColor: '#F6E9E6', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 11 },
