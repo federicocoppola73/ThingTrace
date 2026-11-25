@@ -17,6 +17,14 @@ The repository now includes an Expo SDK 58 application scaffold and the first en
 - `expo-camera` for in-app camera capture and QR scanning
 - `expo-crypto` for UUID generation
 
+## Location management
+
+- Hierarchical locations: site → room/zone → place → position.
+- Assign a location when creating or editing a container.
+- Search containers by their full location path.
+- Cascading deletion removes a whole site or location subtree; confirmation reports affected locations and containers. Containers and photos are preserved and become unassigned.
+- See `docs/locations.md` for the data model and workflows.
+
 ## Photo archive module
 
 - `src/foto/fotoService.ts`: application-facing photo operations.
@@ -39,8 +47,8 @@ Install Expo-compatible native dependencies from the app root with `npx expo ins
 ## Not implemented yet
 
 - Device-verified dependency installation and native builds.
-- Home/location user interface and full entity workflows.
-- Camera screen integration and QR scanning UI.
+- Full item and document entity workflows.
+- QR scanning UI.
 - Thumbnail generation and photo gallery components.
 - Backup/restore integration.
 - Automated TypeScript, unit and Android/iOS device tests.

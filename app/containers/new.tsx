@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createContainer } from '@/repositories/containerRepository';
+import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
+import { LocationPicker } from '@/components/LocationPicker';
 
 const TYPES = [
   { value: 'BOX', label: 'Scatola' },
@@ -19,6 +21,10 @@ export default function NewContainerScreen() {
   const [type, setType] = useState<(typeof TYPES)[number]['value']>('BOX');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [locations, setLocations] = useState<LocationRecord[]>([]);
+  const [locationId, setLocationId] = useState<string | null>(null);
+
+  useFocusEffect(useCallback(() => { let active = true; listLocations().then((items) => { if (active) setLocations(items); }).catch((error) => Alert.alert('Errore ubicazioni', error instanceof Error ? error.message : 'Impossibile caricare le ubicazioni.')); return () => { active = false; }; }, []));
 
   async function save() {
     if (!name.trim()) {
@@ -27,7 +33,7 @@ export default function NewContainerScreen() {
     }
     setSaving(true);
     try {
-      const id = await createContainer({ name: name.trim(), type, notes: notes.trim() || null });
+      const id = await createContainer({ name: name.trim(), type, notes: notes.trim() || null, locationId });
       router.replace({ pathname: '/containers/[id]', params: { id } });
     } catch (error) {
       Alert.alert('Salvataggio non riuscito', error instanceof Error ? error.message : 'Errore imprevisto.');
@@ -48,6 +54,10 @@ export default function NewContainerScreen() {
           </Pressable>
         ))}
       </View>
+      <Text style={styles.label}>UBICAZIONE (FACOLTATIVA)</Text>
+      <LocationPicker locations={locations} selectedLocationId={locationId} onSelect={setLocationId} />
+      <Text style={styles.locationHint}>Puoi scegliere qualsiasi livello da Stanza/Zona in poi: non è necessario indicare una Posizione specifica.</Text>
+      <Pressable onPress={() => router.push('/locations')} style={styles.manageLocations}><Text style={styles.manageLocationsText}>Gestisci ubicazioni</Text></Pressable>
       <Text style={styles.label}>NOTE (FACOLTATIVE)</Text>
       <TextInput value={notes} onChangeText={setNotes} placeholder="Aggiungi dettagli utili..." style={[styles.input, styles.notes]} multiline />
       <Pressable disabled={saving} onPress={save} style={[styles.button, saving && { opacity: 0.6 }]}>
@@ -62,6 +72,9 @@ const styles = StyleSheet.create({
   label: { fontSize: 11, letterSpacing: 1.1, fontWeight: '800', color: '#747A6E', marginBottom: 9, marginTop: 19 },
   input: { backgroundColor: '#FFFFFF', borderColor: '#E4E2DA', borderWidth: 1, borderRadius: 12, padding: 15, fontSize: 16, color: '#252923' },
   notes: { minHeight: 100, textAlignVertical: 'top' },
+  locationHint: { color: '#858A80', fontSize: 13 },
+  manageLocations: { alignSelf: 'flex-start', paddingVertical: 10 },
+  manageLocationsText: { color: '#526447', fontWeight: '800', fontSize: 13 },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   typeOption: { borderRadius: 12, borderWidth: 1, borderColor: '#E2E2DA', paddingHorizontal: 15, paddingVertical: 12, backgroundColor: '#FFFFFF' },
   typeSelected: { backgroundColor: '#E8EDE3', borderColor: '#64765A' },
