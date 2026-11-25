@@ -43,6 +43,7 @@ export default function HomeScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>{container.name}</Text>
               <Text style={styles.cardMeta}>{container.typeLabel}{container.locationName ? ' · ' + container.locationName : ''}</Text>
+              <Text style={styles.photoCount}>▧  {container.photoCount} {container.photoCount === 1 ? 'foto' : 'foto'}</Text>
             </View>
             <Text style={styles.chevron}>›</Text>
           </Pressable>
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
   cardIconText: { fontSize: 21, color: '#5D6B50' },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#2A2F28' },
   cardMeta: { fontSize: 12, color: '#81867C', marginTop: 4 },
+  photoCount: { fontSize: 12, color: '#5D6B50', fontWeight: '700', marginTop: 5 },
   chevron: { fontSize: 26, color: '#9A9E95', marginLeft: 8 },
   primaryButton: { backgroundColor: '#43533C', padding: 17, borderRadius: 15, alignItems: 'center', marginTop: 20 },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
