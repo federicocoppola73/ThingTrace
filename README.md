@@ -22,7 +22,7 @@ The repository now includes an Expo SDK 58 application scaffold and the first en
 - Hierarchical locations: site → room/zone → place → position.
 - Assign a location when creating or editing a container.
 - Search containers by their full location path.
-- Deletion safeguards prevent removing locations still used by containers or child locations.
+- Cascading deletion removes a whole site or location subtree; confirmation reports affected locations and containers. Containers and photos are preserved and become unassigned.
 - See `docs/locations.md` for the data model and workflows.
 
 ## Photo archive module
