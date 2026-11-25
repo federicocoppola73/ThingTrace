@@ -47,8 +47,8 @@ Install Expo-compatible native dependencies from the app root with `npx expo ins
 ## Not implemented yet
 
 - Device-verified dependency installation and native builds.
-- Home/location user interface and full entity workflows.
-- Camera screen integration and QR scanning UI.
+- Full item and document entity workflows.
+- QR scanning UI.
 - Thumbnail generation and photo gallery components.
 - Backup/restore integration.
 - Automated TypeScript, unit and Android/iOS device tests.
