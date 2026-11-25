@@ -126,6 +126,9 @@ export default function ContainerDetailScreen() {
           <Text style={styles.type}>{container.typeLabel.toUpperCase()}</Text>
           <Text style={styles.title}>{container.name}</Text>
           {container.notes ? <Text style={styles.notes}>{container.notes}</Text> : null}
+          <Pressable style={styles.editButton} onPress={() => router.push({ pathname: '/containers/edit', params: { id: container.id } })}>
+            <Text style={styles.editButtonText}>Modifica nome e tipologia</Text>
+          </Pressable>
         </View>
 
         <View style={styles.sectionHeader}>
@@ -217,6 +220,8 @@ const styles = StyleSheet.create({
   type: { color: '#68715E', fontSize: 10, letterSpacing: 1.4, fontWeight: '800', marginBottom: 8 },
   title: { fontSize: 27, fontWeight: '800', color: '#252923' },
   notes: { color: '#5E6258', lineHeight: 21, marginTop: 10 },
+  editButton: { alignSelf: 'flex-start', marginTop: 16, backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 10 },
+  editButtonText: { color: '#43533C', fontWeight: '800', fontSize: 13 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   sectionTitle: { flex: 1, color: '#252923', fontSize: 20, fontWeight: '800' },
   empty: { padding: 22, borderWidth: 1, borderStyle: 'dashed', borderColor: '#E1DFD7', borderRadius: 16 },
