@@ -1,4 +1,4 @@
-import { useCallback,useMemo,useState } from 'react';
+import { useCallback,useMemo,useState } from 'react';\nimport type { ReactNode } from 'react';
 import { useFocusEffect,useLocalSearchParams,useRouter } from 'expo-router';
 import { Alert,Pressable,ScrollView,StyleSheet,Text,TextInput,View } from 'react-native';
 import { getDocument,linkDocument,type DocumentEntity } from '@/repositories/documentRepository';
@@ -33,7 +33,7 @@ export default function LinkDocumentScreen(){
   catch(e){Alert.alert('Collegamento non riuscito',e instanceof Error?e.message:'Impossibile collegare il documento.')}
   finally{setBusy(false)}
  }
- function section(label:string,count:number,children:React.ReactNode){return <View style={s.section}><View style={s.sectionHead}><Text style={s.sectionTitle}>{label}</Text><Text style={s.count}>{count}</Text></View>{children}</View>}
+ function section(label:string,count:number,children:ReactNode){return <View style={s.section}><View style={s.sectionHead}><Text style={s.sectionTitle}>{label}</Text><Text style={s.count}>{count}</Text></View>{children}</View>}
  function row(label:string,detail:string,onPress:()=>void,key:string){return <Pressable key={key} disabled={busy} style={s.row} onPress={onPress}><View style={{flex:1}}><Text style={s.name}>{label}</Text>{detail?<Text style={s.meta}>{detail}</Text>:null}</View><Text style={s.add}>＋</Text></Pressable>}
  return <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
   <Text style={s.eyebrow}>COLLEGAMENTI</Text><Text style={s.title}>Associa documento</Text><Text style={s.subtitle}>Documento: {title||'Caricamento...'}. Puoi collegarlo a più oggetti, contenitori e luoghi. Il documento e i suoi allegati restano unici nell’archivio.</Text>
