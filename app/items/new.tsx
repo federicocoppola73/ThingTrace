@@ -2,13 +2,14 @@ import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createItem, type ItemDestination } from '@/repositories/itemRepository';
+import { linkDocument } from '@/repositories/documentRepository';
 import { listContainers, type ContainerSummary } from '@/repositories/containerRepository';
 import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
 import { ContainerPicker } from '@/components/ContainerPicker';
 
 export default function NewItemScreen() {
   const router = useRouter();
-  const { containerId } = useLocalSearchParams<{ containerId?: string }>();
+  const { containerId, documentId } = useLocalSearchParams<{ containerId?: string; documentId?: string }>();
   const scrollRef = useRef<ScrollView>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -32,7 +33,9 @@ export default function NewItemScreen() {
     setSaving(true);
     try {
       const id = await createItem({ name, description: description || null, quantity: parsedQuantity, notes: notes || null, destination });
-      router.replace({ pathname: '/items/[id]', params: { id } });
+      if (documentId) await linkDocument(documentId, { type: 'ITEM', id });
+      if (documentId) router.replace({ pathname: '/documents/[id]', params: { id: documentId } });
+      else router.replace({ pathname: '/items/[id]', params: { id } });
     } catch (error) { Alert.alert('Salvataggio non riuscito', error instanceof Error ? error.message : 'Errore imprevisto.'); }
     finally { setSaving(false); }
   }
