@@ -21,7 +21,7 @@ export default function HomeScreen() {
   const filteredContainers = containers.filter((container) => {
     const query = normalize(search);
     if (!query) return true;
-    return [container.name, container.typeLabel, container.type, container.notes ?? '']
+    return [container.name, container.typeLabel, container.type, container.notes ?? '', container.locationName ?? '']
       .some((value) => normalize(value).includes(query));
   });
 
@@ -78,6 +78,7 @@ export default function HomeScreen() {
         ))
       )}
 
+      <Pressable style={styles.trashButton} onPress={() => router.push('/locations')}><Text style={styles.trashButtonText}>⌖  Gestisci sedi e ubicazioni</Text></Pressable>
       <Pressable style={styles.trashButton} onPress={() => router.push('/trash')}><Text style={styles.trashButtonText}>▤  Cestino delle fotografie</Text></Pressable>
       <Pressable style={styles.primaryButton} onPress={() => router.push('/containers/new')}>
         <Text style={styles.primaryButtonText}>＋  Crea contenitore</Text>
