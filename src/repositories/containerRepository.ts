@@ -29,6 +29,7 @@ export interface ContainerSummary {
   typeLabel: string;
   locationName: string | null;
   photoCount: number;
+  notes: string | null;
 }
 
 export interface ContainerDetail extends ContainerSummary {
@@ -68,7 +69,8 @@ export async function listContainers(): Promise<ContainerSummary[]> {
     type: row.type,
     typeLabel: TYPE_LABELS[row.type],
     locationName: row.location_name,
-    photoCount: Number(row.photo_count ?? 0)
+    photoCount: Number(row.photo_count ?? 0),
+    notes: row.notes
   }));
 }
 
