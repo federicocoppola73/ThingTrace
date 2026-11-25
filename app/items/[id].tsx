@@ -7,6 +7,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { CameraView as CameraViewType } from 'expo-camera';
 import { deleteItem, getItem, listItemMovements, moveItem, type ItemMovement, type ItemSummary } from '@/repositories/itemRepository';
 import { listContainers, type ContainerSummary } from '@/repositories/containerRepository';
+import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
+import { ContainerPicker } from '@/components/ContainerPicker';
 import { getDatabase } from '@/database/database';
 import { FotoService } from '@/foto/fotoService';
 import { pickAndImportPhotos } from '@/foto/photoPicker';
@@ -18,6 +20,7 @@ export default function ItemDetailScreen() {
   const [item, setItem] = useState<ItemSummary | null>(null);
   const [movements, setMovements] = useState<ItemMovement[]>([]);
   const [containers, setContainers] = useState<ContainerSummary[]>([]);
+  const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [photos, setPhotos] = useState<PhotoRecord[]>([]);
   const [photoUris, setPhotoUris] = useState<Record<string, string>>({});
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoRecord | null>(null);
@@ -34,8 +37,8 @@ export default function ItemDetailScreen() {
     if (!id) return;
     setLoading(true);
     try {
-      const [record, history, containerRows] = await Promise.all([getItem(id), listItemMovements(id), listContainers()]);
-      setItem(record); setMovements(history); setContainers(containerRows);
+      const [record, history, containerRows, locationRows] = await Promise.all([getItem(id), listItemMovements(id), listContainers(), listLocations()]);
+      setItem(record); setMovements(history); setContainers(containerRows); setLocations(locationRows);
       if (record) {
         const service = new FotoService(await getDatabase());
         const records = await service.getPhotos({ type: 'ITEM', id });
@@ -162,13 +165,7 @@ export default function ItemDetailScreen() {
         <ScrollView contentContainerStyle={styles.modalPage} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <Text style={styles.modalTitle}>Sposta oggetto</Text>
           <Text style={styles.modalHint}>Seleziona il nuovo contenitore. Ogni variazione verrà registrata nello storico.</Text>
-          <Pressable onPress={() => setDestinationId(null)} style={[styles.containerOption, destinationId === null && styles.containerSelected]}><Text style={[styles.containerOptionText, destinationId === null && styles.containerSelectedText]}>Non assegnato</Text></Pressable>
-          {containers.map((container) => (
-            <Pressable key={container.id} onPress={() => setDestinationId(container.id)} style={[styles.containerOption, destinationId === container.id && styles.containerSelected]}>
-              <Text style={[styles.containerOptionText, destinationId === container.id && styles.containerSelectedText]}>{container.name}</Text>
-              {container.locationName ? <Text style={styles.containerMeta}>{container.locationName}</Text> : null}
-            </Pressable>
-          ))}
+          <ContainerPicker containers={containers} locations={locations} selectedContainerId={destinationId} onSelect={setDestinationId} />
           <Text style={styles.label}>NOTA SULLO SPOSTAMENTO (FACOLTATIVA)</Text>
           <TextInput value={movementNote} onChangeText={setMovementNote} placeholder="Es. Trasferito dopo il trasloco..." style={styles.noteInput} multiline />
           <Pressable style={styles.button} onPress={confirmMove}><Text style={styles.buttonText}>Conferma spostamento</Text></Pressable>
