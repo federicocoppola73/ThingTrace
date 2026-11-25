@@ -144,6 +144,28 @@ export async function moveItem(id: string, destinationContainerId: string | null
   });
 }
 
+export async function deleteItem(id: string): Promise<void> {
+  const db = await getDatabase();
+  const now = new Date().toISOString();
+  await db.withTransactionAsync(async () => {
+    const item = await db.getFirstAsync<{ id: string }>('SELECT id FROM items WHERE id = ?', id);
+    if (!item) throw new Error('Oggetto non trovato.');
+
+    // Le foto non condivise vengono conservate nel cestino; quelle collegate
+    // anche ad altre entità restano attive. I file non vengono eliminati.
+    await db.runAsync(
+      `UPDATE photos SET deleted_at = ?, updated_at = ?
+       WHERE id IN (SELECT photo_id FROM item_photos WHERE item_id = ?)
+       AND NOT EXISTS (SELECT 1 FROM container_photos cp WHERE cp.photo_id = photos.id)
+       AND NOT EXISTS (SELECT 1 FROM document_photos dp WHERE dp.photo_id = photos.id)
+       AND (SELECT COUNT(*) FROM item_photos ip WHERE ip.photo_id = photos.id) = 1
+       AND deleted_at IS NULL`,
+      now, now, id
+    );
+    await db.runAsync('DELETE FROM items WHERE id = ?', id);
+  });
+}
+
 export async function listItemMovements(itemId: string): Promise<ItemMovement[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<MovementRow>(
