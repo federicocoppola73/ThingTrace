@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
@@ -80,7 +81,7 @@ export default function LocationsScreen() {
     ]);
   }
 
-  function renderLocation(location: LocationRecord, homeId: string, parentId: string | null, type: LocationType, depth: number): React.ReactNode {
+  function renderLocation(location: LocationRecord, homeId: string, depth: number): ReactNode {
     return (
       <View key={location.id} style={[styles.locationCard, { marginLeft: depth * 14 }]}>
         <View style={styles.locationHeader}>
@@ -102,7 +103,7 @@ export default function LocationsScreen() {
           </Pressable>
         ) : null}
         {locations.filter((child) => child.parentId === location.id).map((child) =>
-          renderLocation(child, homeId, child.parentId, child.type, depth + 1)
+          renderLocation(child, homeId, depth + 1)
         )}
       </View>
     );
@@ -143,7 +144,7 @@ export default function LocationsScreen() {
             <Pressable style={styles.addArea} onPress={() => begin({ kind: 'location', mode: 'create', homeId: home.id, parentId: null, type: 'AREA' })}>
               <Text style={styles.addAreaText}>＋ Aggiungi area</Text>
             </Pressable>
-            {areas.map((area) => renderLocation(area, home.id, null, 'AREA', 0))}
+            {areas.map((area) => renderLocation(area, home.id, 0))}
             {areas.length === 0 ? <Text style={styles.emptyText}>Nessuna area. Aggiungi ad esempio Garage, Piano terra o Magazzino.</Text> : null}
           </View>
         );
