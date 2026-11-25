@@ -29,9 +29,13 @@ Gli ID nello storico usano `ON DELETE SET NULL`, mentre i nomi/percorso sono mem
 
 La creazione e lo spostamento usano un selettore unico con modalità Esplora e Cerca. Si può scegliere un contenitore oppure assegnare l'oggetto direttamente a una ubicazione; la ricerca trova sia contenitori sia ubicazioni. I contenitori senza ubicazione sono disponibili alla radice e nella ricerca. Nel dettaglio sono mostrate soltanto la collocazione attuale e le azioni Sposta e Rimuovi. Entrambe le operazioni richiedono conferma e sono registrate nello storico.
 
-La cancellazione di un oggetto elimina anche gli eventi del suo storico. Le fotografie collegate esclusivamente a quell'oggetto vengono spostate logicamente nel cestino (il file archivio non viene cancellato); le fotografie ancora collegate ad altre entità restano attive. L'operazione è confermata esplicitamente dall'utente e non è reversibile per l'oggetto e il relativo storico.
+La cancellazione di un oggetto elimina anche gli eventi del suo storico. Le fotografie collegate esclusivamente a quell'oggetto vengono eliminate definitivamente dal database e dall'archivio privato; le fotografie ancora collegate ad altre entità restano attive. L'operazione è confermata esplicitamente dall'utente e non è reversibile per l'oggetto e il relativo storico.
 
 I moduli di creazione e modifica usano una vista che si adatta alla tastiera e mantiene scorrevole il contenuto; su Android la finestra ridimensiona il layout quando compare la tastiera.
 
 
 Quando un oggetto viene eliminato, le fotografie collegate esclusivamente a esso vengono eliminate definitivamente dal database e dall'archivio privato. Se una fotografia è condivisa con un'altra entità, viene rimossa solo l'associazione all'oggetto e il file resta disponibile all'altra entità. Le fotografie legacy già presenti nel cestino senza alcuna associazione non possono essere ripristinate senza un destinatario; possono essere eliminate definitivamente dal cestino.
+
+## Inventario dal dettaglio contenitore
+
+Il dettaglio di un contenitore mostra l'elenco degli oggetti la cui collocazione attuale è quel contenitore, con nome, descrizione e quantità. Il comando **Aggiungi** apre il modulo di creazione con il contenitore già impostato come collocazione iniziale; l'utente può comunque cambiarla prima del salvataggio. Se il nuovo oggetto viene creato, il dettaglio dell'oggetto sostituisce il modulo nella navigazione, così il comando Indietro riporta al contenitore. Anche aprendo un oggetto esistente dall'elenco si mantiene la normale navigazione indietro. Quando il dettaglio contenitore torna in primo piano, l'elenco viene ricaricato dal database: gli oggetti spostati altrove non compaiono più e quelli spostati nel contenitore vengono mostrati.
