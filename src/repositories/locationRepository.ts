@@ -106,18 +106,68 @@ export async function renameLocation(id: string, name: string): Promise<void> {
   if (!result.changes) throw new Error('Ubicazione non trovata.');
 }
 
+export interface DeleteImpact {
+  locations: number;
+  containers: number;
+}
+
+export async function getHomeDeleteImpact(id: string): Promise<DeleteImpact> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<{ locations: number; containers: number }>(
+    `SELECT COUNT(DISTINCT l.id) AS locations,
+            COUNT(DISTINCT c.id) AS containers
+     FROM homes h
+     LEFT JOIN locations l ON l.home_id = h.id
+     LEFT JOIN containers c ON c.location_id = l.id
+     WHERE h.id = ?`, id
+  );
+  return { locations: Number(row?.locations ?? 0), containers: Number(row?.containers ?? 0) };
+}
+
+export async function getLocationDeleteImpact(id: string): Promise<DeleteImpact> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<{ locations: number; containers: number }>(
+    `WITH RECURSIVE subtree(id) AS (
+       SELECT id FROM locations WHERE id = ?
+       UNION ALL
+       SELECT child.id FROM locations child JOIN subtree parent ON child.parent_id = parent.id
+     )
+     SELECT COUNT(DISTINCT subtree.id) AS locations,
+            COUNT(DISTINCT c.id) AS containers
+     FROM subtree LEFT JOIN containers c ON c.location_id = subtree.id`, id
+  );
+  return { locations: Number(row?.locations ?? 0), containers: Number(row?.containers ?? 0) };
+}
+
 export async function deleteHome(id: string): Promise<void> {
   const db = await getDatabase();
-  const count = await db.getFirstAsync<{ total: number }>('SELECT COUNT(*) AS total FROM locations WHERE home_id = ?', id);
-  if (Number(count?.total ?? 0) > 0) throw new Error('Sposta o elimina prima tutte le ubicazioni della sede.');
-  await db.runAsync('DELETE FROM homes WHERE id = ?', id);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('UPDATE containers SET location_id = NULL WHERE location_id IN (SELECT id FROM locations WHERE home_id = ?)', id);
+    await db.runAsync('DELETE FROM locations WHERE home_id = ?', id);
+    const result = await db.runAsync('DELETE FROM homes WHERE id = ?', id);
+    if (!result.changes) throw new Error('Sede non trovata.');
+  });
 }
 
 export async function deleteLocation(id: string): Promise<void> {
   const db = await getDatabase();
-  const children = await db.getFirstAsync<{ total: number }>('SELECT COUNT(*) AS total FROM locations WHERE parent_id = ?', id);
-  const containers = await db.getFirstAsync<{ total: number }>('SELECT COUNT(*) AS total FROM containers WHERE location_id = ?', id);
-  if (Number(children?.total ?? 0) > 0) throw new Error('Questa ubicazione contiene altre ubicazioni. Elimina prima quelle inferiori.');
-  if (Number(containers?.total ?? 0) > 0) throw new Error('Questa ubicazione è assegnata a uno o più contenitori. Spostali prima di eliminarla.');
-  await db.runAsync('DELETE FROM locations WHERE id = ?', id);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `WITH RECURSIVE subtree(id) AS (
+         SELECT id FROM locations WHERE id = ?
+         UNION ALL
+         SELECT child.id FROM locations child JOIN subtree parent ON child.parent_id = parent.id
+       )
+       UPDATE containers SET location_id = NULL WHERE location_id IN (SELECT id FROM subtree)`, id
+    );
+    const result = await db.runAsync(
+      `WITH RECURSIVE subtree(id) AS (
+         SELECT id FROM locations WHERE id = ?
+         UNION ALL
+         SELECT child.id FROM locations child JOIN subtree parent ON child.parent_id = parent.id
+       )
+       DELETE FROM locations WHERE id IN (SELECT id FROM subtree)`, id
+    );
+    if (!result.changes) throw new Error('Ubicazione non trovata.');
+  });
 }
