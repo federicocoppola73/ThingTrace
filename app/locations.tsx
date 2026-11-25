@@ -1,7 +1,7 @@
 import { DocumentLinksSection } from '@/components/DocumentLinksSection';
 import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   createHome, createLocation, deleteHome, deleteLocation, getHomeDeleteImpact, getLocationDeleteImpact, listHomes, listLocations,
@@ -15,7 +15,6 @@ type Editor =
 const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Stanza/Zona', ROOM: 'Luogo', POSITION: 'Posizione' };
 
 export default function LocationsScreen() {
-  const router = useRouter();
   const [homes, setHomes] = useState<HomeRecord[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [name, setName] = useState('');
