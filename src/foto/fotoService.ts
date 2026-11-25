@@ -103,6 +103,20 @@ export class FotoService {
     return this.repository.getTrash();
   }
 
+  async deleteEntityPhotos(entity: PhotoEntity): Promise<void> {
+    // Detach every photo from this entity. Delete the file only when no other
+    // entity still references it; shared photos remain available elsewhere.
+    const photos = await this.repository.getByEntity(entity, true);
+    for (const photo of photos) {
+      await this.repository.unlink(photo.id, entity);
+      const remainingLinks = await this.repository.countLinks(photo.id);
+      if (remainingLinks === 0) {
+        await this.repository.deleteRecord(photo.id);
+        this.storage.deletePhotoDirectory(photo.id);
+      }
+    }
+  }
+
   async permanentlyDelete(photoId: string): Promise<void> {
     const photo = await this.repository.getById(photoId);
     if (!photo) throw new PhotoError('PHOTO_NOT_FOUND', 'The photo was not found.');
