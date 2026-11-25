@@ -33,6 +33,7 @@ export default function RootLayout() {
       <Stack.Screen name="index" options={{ title: 'ThingTrace', headerShown: false }} />
       <Stack.Screen name="containers/new" options={{ title: 'Nuovo contenitore', presentation: 'modal' }} />
       <Stack.Screen name="containers/[id]" options={{ title: 'Contenitore' }} />
+      <Stack.Screen name="trash" options={{ title: 'Cestino foto' }} />
     </Stack>
   );
 }
