@@ -37,6 +37,7 @@ export default function RootLayout() {
       <Stack.Screen name="items/[id]" options={{ title: 'Oggetto' }} />
       <Stack.Screen name="items/edit" options={{ title: 'Modifica oggetto', presentation: 'modal' }} />
       <Stack.Screen name="containers/[id]" options={{ title: 'Contenitore' }} />
+      <Stack.Screen name="containers/add-items" options={{ title: 'Aggiungi oggetti' }} />
       <Stack.Screen name="trash" options={{ title: 'Cestino foto' }} />
       <Stack.Screen name="locations" options={{ title: 'Sedi e ubicazioni' }} />
     </Stack>
