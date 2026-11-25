@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   createHome, createLocation, deleteHome, deleteLocation, getHomeDeleteImpact, getLocationDeleteImpact, listHomes, listLocations,
@@ -14,6 +14,7 @@ type Editor =
 const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Stanza/Zona', ROOM: 'Luogo', POSITION: 'Posizione' };
 
 export default function LocationsScreen() {
+  const router = useRouter();
   const [homes, setHomes] = useState<HomeRecord[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [name, setName] = useState('');
@@ -120,6 +121,9 @@ export default function LocationsScreen() {
           <Pressable onPress={() => begin({ kind: 'location', mode: 'rename', id: location.id }, location.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
           <Pressable onPress={() => confirmDeleteLocation(location)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
         </View>
+        <Pressable style={styles.addChild} onPress={() => router.push({ pathname: '/documents/attach', params: { entityType: 'LOCATION', entityId: location.id } })}>
+          <Text style={styles.addChildText}>▤ Documenti collegati</Text>
+        </Pressable>
         {location.type === 'AREA' ? (
           <Pressable style={styles.addChild} onPress={() => begin({ kind: 'location', mode: 'create', homeId, parentId: location.id, type: 'ROOM' })}>
             <Text style={styles.addChildText}>＋ Aggiungi luogo</Text>
