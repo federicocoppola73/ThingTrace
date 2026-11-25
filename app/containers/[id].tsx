@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Alert,
   Image,
@@ -19,12 +19,14 @@ import { FotoService } from '@/foto/fotoService';
 
 export default function ContainerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [container, setContainer] = useState<ContainerDetail | null>(null);
-  const [photoUris, setPhotoUris] = useState<string[]>([]);
+  const [photoRecords, setPhotoRecords] = useState<import('@/foto/types').PhotoRecord[]>([]);
+  const [photoUris, setPhotoUris] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<import('@/foto/types').PhotoRecord | null>(null);
   const cameraRef = useRef<CameraViewType | null>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
@@ -39,10 +41,12 @@ export default function ContainerDetailScreen() {
         const db = await getDatabase();
         const service = new FotoService(db);
         const photos = await service.getPhotos({ type: 'CONTAINER', id });
-        const uris = await Promise.all(photos.map((photo) => service.getPhotoUri(photo.id)));
-        setPhotoUris(uris);
+        const uris = await Promise.all(photos.map(async (photo) => [photo.id, await service.getPhotoUri(photo.id)] as const));
+        setPhotoRecords(photos);
+        setPhotoUris(Object.fromEntries(uris));
       } else {
-        setPhotoUris([]);
+        setPhotoRecords([]);
+        setPhotoUris({});
       }
     } catch (error) {
       Alert.alert('Errore caricamento fotografie', error instanceof Error ? error.message : 'Impossibile caricare il contenitore.');
@@ -65,6 +69,16 @@ export default function ContainerDetailScreen() {
     } catch (error) {
       Alert.alert('Importazione non riuscita', error instanceof Error ? error.message : 'Errore imprevisto.');
     }
+  }
+
+  function movePhotoToTrash(photo: import('@/foto/types').PhotoRecord) {
+    Alert.alert('Spostare nel cestino?', 'La fotografia verrà rimossa dal contenitore e spostata nel cestino. Potrai ripristinarla o eliminarla definitivamente in seguito.', [
+      { text: 'Annulla', style: 'cancel' },
+      { text: 'Sposta nel cestino', style: 'destructive', onPress: async () => {
+        try { await new FotoService(await getDatabase()).moveToTrash(photo.id); setSelectedPhoto(null); await refresh(); }
+        catch (error) { Alert.alert('Operazione non riuscita', error instanceof Error ? error.message : 'Impossibile spostare la foto nel cestino.'); }
+      } },
+    ]);
   }
 
   async function openCamera() {
@@ -116,22 +130,22 @@ export default function ContainerDetailScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Fotografie</Text>
-          <Text style={styles.muted}>{photoUris.length}</Text>
+          <Text style={styles.muted}>{photoRecords.length}</Text>
         </View>
 
-        {photoUris.length ? (
+        {photoRecords.length ? (
           <View style={styles.grid}>
-            {photoUris.map((uri) => (
-              <Pressable key={uri} onPress={() => setSelectedPhoto(uri)} accessibilityRole="imagebutton" accessibilityLabel="Apri fotografia">
+            {photoRecords.map((photo) => (
+              <View key={photo.id} style={styles.photoWrap}><Pressable onPress={() => setSelectedPhoto(photo)} accessibilityRole="imagebutton" accessibilityLabel="Apri fotografia">
                 <Image
-                  source={{ uri }}
+                  source={{ uri: photoUris[photo.id] }}
                   style={styles.photo}
                   resizeMode="cover"
                   onError={(event) => {
                     Alert.alert('Immagine non visualizzabile', event.nativeEvent.error || `Impossibile leggere il file: ${uri}`);
                   }}
                 />
-              </Pressable>
+              </Pressable><Pressable style={styles.photoDelete} onPress={() => movePhotoToTrash(photo)}><Text style={styles.photoDeleteText}>×</Text></Pressable></View>
             ))}
           </View>
         ) : (
@@ -146,6 +160,7 @@ export default function ContainerDetailScreen() {
         <Pressable style={[styles.button, styles.secondaryButton]} onPress={addPhotosFromGallery}>
           <Text style={styles.secondaryButtonText}>＋  Scegli dalla galleria</Text>
         </Pressable>
+        <Pressable style={[styles.button, styles.secondaryButton]} onPress={() => router.push('/trash')}><Text style={styles.secondaryButtonText}>▤  Apri cestino</Text></Pressable>
         <Text style={styles.footnote}>Le fotografie scattate o selezionate vengono copiate nell'archivio privato di ThingTrace. Gli originali non vengono eliminati.</Text>
       </ScrollView>
 
@@ -186,7 +201,8 @@ export default function ContainerDetailScreen() {
           <Pressable style={styles.viewerClose} onPress={() => setSelectedPhoto(null)}>
             <Text style={styles.viewerCloseText}>Chiudi</Text>
           </Pressable>
-          {selectedPhoto ? <Image source={{ uri: selectedPhoto }} style={styles.fullPhoto} resizeMode="contain" /> : null}
+          {selectedPhoto ? <Image source={{ uri: photoUris[selectedPhoto.id] }} style={styles.fullPhoto} resizeMode="contain" /> : null}
+          {selectedPhoto ? <Pressable style={styles.viewerDelete} onPress={() => movePhotoToTrash(selectedPhoto)}><Text style={styles.viewerDeleteText}>Sposta nel cestino</Text></Pressable> : null}
         </View>
       </Modal>
     </>
@@ -207,6 +223,7 @@ const styles = StyleSheet.create({
   emptyText: { color: '#777D72', textAlign: 'center', lineHeight: 21 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   photo: { width: 104, height: 104, borderRadius: 12, backgroundColor: '#E9E8E1' },
+  photoWrap: { position: 'relative' }, photoDelete: { position: 'absolute', top: 4, right: 4, width: 26, height: 26, borderRadius: 13, backgroundColor: '#252923', alignItems: 'center', justifyContent: 'center' }, photoDeleteText: { color: '#FFFFFF', fontSize: 20, lineHeight: 23 },
   button: { backgroundColor: '#43533C', borderRadius: 14, padding: 17, alignItems: 'center', marginTop: 14 },
   buttonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
   secondaryButton: { backgroundColor: '#EEF0E8', marginTop: 10 },
@@ -225,5 +242,5 @@ const styles = StyleSheet.create({
   viewer: { flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' },
   viewerClose: { position: 'absolute', zIndex: 1, top: 54, right: 22, padding: 12 },
   viewerCloseText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
-  fullPhoto: { width: '100%', height: '82%' },
+  fullPhoto: { width: '100%', height: '75%' }, viewerDelete: { position: 'absolute', bottom: 42, padding: 14 }, viewerDeleteText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });
