@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { getContainer, updateContainer, type ContainerType } from '@/repositories/containerRepository';
+import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
 
 const TYPES: { value: ContainerType; label: string }[] = [
   { value: 'BOX', label: 'Scatola' },
@@ -19,6 +20,8 @@ export default function EditContainerScreen() {
   const [name, setName] = useState('');
   const [type, setType] = useState<ContainerType>('BOX');
   const [notes, setNotes] = useState('');
+  const [locations, setLocations] = useState<LocationRecord[]>([]);
+  const [locationId, setLocationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -35,12 +38,15 @@ export default function EditContainerScreen() {
       setName(container.name);
       setType(container.type);
       setNotes(container.notes ?? '');
+      setLocationId(container.locationId);
     }).catch((error) => {
       Alert.alert('Errore', error instanceof Error ? error.message : 'Impossibile caricare il contenitore.');
       router.back();
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [id, router]);
+
+  useEffect(() => { listLocations().then(setLocations).catch((error) => Alert.alert('Errore ubicazioni', error instanceof Error ? error.message : 'Impossibile caricare le ubicazioni.')); }, []);
 
   async function save() {
     if (!name.trim()) {
@@ -50,7 +56,7 @@ export default function EditContainerScreen() {
     if (!id) return;
     setSaving(true);
     try {
-      await updateContainer(id, { name: name.trim(), type, notes: notes.trim() || null });
+      await updateContainer(id, { name: name.trim(), type, notes: notes.trim() || null, locationId });
       router.replace({ pathname: '/containers/[id]', params: { id } });
     } catch (error) {
       Alert.alert('Modifica non riuscita', error instanceof Error ? error.message : 'Errore imprevisto.');
@@ -74,6 +80,17 @@ export default function EditContainerScreen() {
           </Pressable>
         ))}
       </View>
+      <Text style={styles.label}>UBICAZIONE (FACOLTATIVA)</Text>
+      {locations.length ? (
+        <View style={styles.locationList}>
+          <Pressable onPress={() => setLocationId(null)} style={[styles.locationOption, !locationId && styles.locationSelected]}><Text style={[styles.locationText, !locationId && styles.locationTextSelected]}>Non assegnata</Text></Pressable>
+          {locations.map((location) => {
+            const selected = locationId === location.id;
+            return <Pressable key={location.id} onPress={() => setLocationId(location.id)} style={[styles.locationOption, selected && styles.locationSelected]}><Text style={[styles.locationText, selected && styles.locationTextSelected]}>{location.homeName} · {location.path}</Text></Pressable>;
+          })}
+        </View>
+      ) : <Text style={styles.locationHint}>Nessuna ubicazione configurata.</Text>}
+      <Pressable onPress={() => router.push('/locations')} style={styles.manageLocations}><Text style={styles.manageLocationsText}>Gestisci ubicazioni</Text></Pressable>
       <Text style={styles.label}>NOTE (FACOLTATIVE)</Text>
       <TextInput
         value={notes}
@@ -101,6 +118,14 @@ const styles = StyleSheet.create({
   label: { fontSize: 11, letterSpacing: 1.1, fontWeight: '800', color: '#747A6E', marginBottom: 9, marginTop: 22 },
   input: { backgroundColor: '#FFFFFF', borderColor: '#E4E2DA', borderWidth: 1, borderRadius: 12, padding: 15, fontSize: 16, color: '#252923' },
   notes: { minHeight: 110, textAlignVertical: 'top' },
+  locationList: { gap: 8 },
+  locationOption: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4E2DA', borderRadius: 10, padding: 12 },
+  locationSelected: { backgroundColor: '#E8EDE3', borderColor: '#64765A' },
+  locationText: { color: '#545B4E', fontSize: 13 },
+  locationTextSelected: { color: '#35472F', fontWeight: '800' },
+  locationHint: { color: '#858A80', fontSize: 13 },
+  manageLocations: { alignSelf: 'flex-start', paddingVertical: 10 },
+  manageLocationsText: { color: '#526447', fontWeight: '800', fontSize: 13 },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   typeOption: { borderRadius: 12, borderWidth: 1, borderColor: '#E2E2DA', paddingHorizontal: 15, paddingVertical: 12, backgroundColor: '#FFFFFF' },
   typeSelected: { backgroundColor: '#E8EDE3', borderColor: '#64765A' },
