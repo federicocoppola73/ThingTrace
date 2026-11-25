@@ -24,6 +24,8 @@ export default function LocationsScreen() {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [expandedHomes, setExpandedHomes] = useState<Set<string>>(new Set());
+  const [expandedLocations, setExpandedLocations] = useState<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     try {
@@ -36,6 +38,24 @@ export default function LocationsScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
+  function toggleHome(id: string) {
+    setExpandedHomes((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  }
+
+  function toggleLocation(id: string) {
+    setExpandedLocations((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  }
+
+  async function associateDocument(location: LocationRecord) {
+    if (!documentId) return;
+    try {
+      await linkDocument(documentId, { type: 'LOCATION', id: location.id });
+      Alert.alert('Documento associato', `Il documento è stato collegato a ${location.homeName} · ${location.path}.`);
+    } catch (error) {
+      Alert.alert('Associazione non riuscita', error instanceof Error ? error.message : 'Impossibile associare il documento.');
+    }
+  }
 
   function begin(next: Editor, initialName = '') {
     setEditor(next);
@@ -50,15 +70,16 @@ export default function LocationsScreen() {
     setSaving(true);
     try {
       if (editor.kind === 'home') {
-        if (editor.mode === 'create') await createHome(name);
+        if (editor.mode === 'create') {
+          const createdHomeId = await createHome(name);
+          setExpandedHomes((current) => new Set(current).add(createdHomeId));
+        }
         else if (editor.id) await renameHome(editor.id, name);
       } else {
         if (editor.mode === 'create' && editor.homeId && editor.type) {
-          const createdId = await createLocation({ homeId: editor.homeId, parentId: editor.parentId ?? null, name, type: editor.type });
-          if (documentId) {
-            await linkDocument(documentId, { type: 'LOCATION', id: createdId });
-            router.replace({ pathname: '/documents/[id]', params: { id: documentId } });
-          }
+          await createLocation({ homeId: editor.homeId, parentId: editor.parentId ?? null, name, type: editor.type });
+          setExpandedHomes((current) => new Set(current).add(editor.homeId!));
+          if (editor.parentId) setExpandedLocations((current) => new Set(current).add(editor.parentId));
         } else if (editor.mode === 'rename' && editor.id) await renameLocation(editor.id, name);
       }
       setEditor(null);
@@ -121,13 +142,15 @@ export default function LocationsScreen() {
     return (
       <View key={location.id} style={[styles.locationCard, { marginLeft: depth * 14 }]}>
         <View style={styles.locationHeader}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.locationType}>{TYPE_LABEL[location.type].toUpperCase()}</Text>
+          <Pressable onPress={() => toggleLocation(location.id)} style={{ flex: 1 }}>
+            <Text style={styles.locationType}>{TYPE_LABEL[location.type].toUpperCase()} · {expandedLocations.has(location.id) ? 'APERTO' : 'CHIUSO'}</Text>
             <Text style={styles.locationName}>{location.name}</Text>
-          </View>
+          </Pressable>
+          {documentId ? <Pressable onPress={() => associateDocument(location)} style={styles.smallAction}><Text style={styles.actionText}>Associa documento</Text></Pressable> : null}
           <Pressable onPress={() => begin({ kind: 'location', mode: 'rename', id: location.id }, location.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
           <Pressable onPress={() => confirmDeleteLocation(location)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
         </View>
+        {expandedLocations.has(location.id) ? <>
         <DocumentLinksSection entity={{ type: 'LOCATION', id: location.id }} hideWhenEmpty />
         {location.type === 'AREA' ? (
           <Pressable style={styles.addChild} onPress={() => begin({ kind: 'location', mode: 'create', homeId, parentId: location.id, type: 'ROOM' })}>
@@ -142,6 +165,7 @@ export default function LocationsScreen() {
         {locations.filter((child) => child.parentId === location.id).map((child) =>
           renderLocation(child, homeId, depth + 1)
         )}
+        </> : null}
       </View>
     );
   }
@@ -171,18 +195,20 @@ export default function LocationsScreen() {
         return (
           <View key={home.id} style={styles.homeCard}>
             <View style={styles.homeHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.homeLabel}>SEDE</Text>
+              <Pressable onPress={() => toggleHome(home.id)} style={{ flex: 1 }}>
+                <Text style={styles.homeLabel}>SEDE · {expandedHomes.has(home.id) ? 'APERta'.toUpperCase() : 'CHIUSA'}</Text>
                 <Text style={styles.homeName}>{home.name}</Text>
-              </View>
+              </Pressable>
               <Pressable onPress={() => begin({ kind: 'home', mode: 'rename', id: home.id }, home.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
               <Pressable onPress={() => confirmDeleteHome(home)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
             </View>
-            <Pressable style={styles.addArea} onPress={() => begin({ kind: 'location', mode: 'create', homeId: home.id, parentId: null, type: 'AREA' })}>
-              <Text style={styles.addAreaText}>＋ Aggiungi stanza/zona</Text>
-            </Pressable>
-            {areas.map((area) => renderLocation(area, home.id, 0))}
-            {areas.length === 0 ? <Text style={styles.emptyText}>Nessuna stanza/zona. Aggiungi ad esempio Garage, Cucina, Ufficio o Giardino.</Text> : null}
+            {expandedHomes.has(home.id) ? <>
+              <Pressable style={styles.addArea} onPress={() => begin({ kind: 'location', mode: 'create', homeId: home.id, parentId: null, type: 'AREA' })}>
+                <Text style={styles.addAreaText}>＋ Aggiungi stanza/zona</Text>
+              </Pressable>
+              {areas.map((area) => renderLocation(area, home.id, 0))}
+              {areas.length === 0 ? <Text style={styles.emptyText}>Nessuna stanza/zona. Aggiungi ad esempio Garage, Cucina, Ufficio o Giardino.</Text> : null}
+            </> : <Text style={styles.emptyText}>Apri la sede per visualizzare o creare stanze e livelli interni.</Text>}
           </View>
         );
       })}
