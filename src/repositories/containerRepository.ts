@@ -67,7 +67,6 @@ export async function listContainers(): Promise<ContainerSummary[]> {
             (SELECT h.name || ' · ' || lp.path FROM location_paths lp JOIN homes h ON h.id = lp.home_id WHERE lp.id = c.location_id) AS location_name,
             COUNT(p.id) AS photo_count
      FROM containers c
-     LEFT JOIN locations l ON l.id = c.location_id
      LEFT JOIN container_photos cp ON cp.container_id = c.id
      LEFT JOIN photos p ON p.id = cp.photo_id AND p.deleted_at IS NULL
      GROUP BY c.id
@@ -89,7 +88,7 @@ export async function updateContainer(id: string, input: {
   name: string;
   type: ContainerType;
   notes: string | null;
-  locationId?: string | null;
+  locationId: string | null;
 }): Promise<void> {
   const db = await getDatabase();
   const result = await db.runAsync(
