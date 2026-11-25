@@ -38,18 +38,30 @@ export interface ContainerDetail extends ContainerSummary {
   notes: string | null;
 }
 
+async function validateLocationId(locationId: string | null | undefined): Promise<void> {
+  if (locationId == null) return;
+  const db = await getDatabase();
+  const location = await db.getFirstAsync<{ id: string }>(
+    'SELECT id FROM locations WHERE id = ?', locationId
+  );
+  if (!location) throw new Error('L’ubicazione selezionata non esiste più. Aggiorna l’elenco e riprova.');
+}
+
 export async function createContainer(input: {
   name: string;
   type: ContainerType;
   notes: string | null;
   locationId?: string | null;
 }): Promise<string> {
+  const cleanName = input.name.trim();
+  if (!cleanName) throw new Error('Inserisci un nome per il contenitore.');
+  await validateLocationId(input.locationId);
   const db = await getDatabase();
   const id = Crypto.randomUUID();
   const now = new Date().toISOString();
   await db.runAsync(
     'INSERT INTO containers (id, name, type, location_id, qr_token, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    id, input.name, input.type, input.locationId ?? null, Crypto.randomUUID(), input.notes, now, now
+    id, cleanName, input.type, input.locationId ?? null, Crypto.randomUUID(), input.notes, now, now
   );
   return id;
 }
@@ -90,10 +102,13 @@ export async function updateContainer(id: string, input: {
   notes: string | null;
   locationId: string | null;
 }): Promise<void> {
+  const cleanName = input.name.trim();
+  if (!cleanName) throw new Error('Inserisci un nome per il contenitore.');
+  await validateLocationId(input.locationId);
   const db = await getDatabase();
   const result = await db.runAsync(
     'UPDATE containers SET name = ?, type = ?, notes = ?, location_id = ?, updated_at = ? WHERE id = ?',
-    input.name.trim(), input.type, input.notes, input.locationId ?? null, new Date().toISOString(), id
+    cleanName, input.type, input.notes, input.locationId ?? null, new Date().toISOString(), id
   );
   if (result.changes === 0) throw new Error('Contenitore non trovato.');
 }
