@@ -17,6 +17,7 @@ import { listItems, type ItemSummary } from '@/repositories/itemRepository';
 import { initializeDatabase, getDatabase } from '@/database/database';
 import { pickAndImportPhotos } from '@/foto/photoPicker';
 import { FotoService } from '@/foto/fotoService';
+import { DocumentLinksSection } from '@/components/DocumentLinksSection';
 
 export default function ContainerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -172,6 +173,8 @@ export default function ContainerDetailScreen() {
             <Text style={styles.emptyText}>Puoi aggiungerne uno con il pulsante qui sopra.</Text>
           </View>
         )}
+
+        <DocumentLinksSection entity={{ type: 'CONTAINER', id }} />
 
         <View style={[styles.sectionHeader, { marginTop: 28 }]}>
           <Text style={styles.sectionTitle}>Fotografie</Text>
