@@ -17,7 +17,7 @@ export default function HomeScreen() {
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
-  const normalize = (value: string) => value.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase().trim();
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   const filteredContainers = containers.filter((container) => {
     const query = normalize(search);
     if (!query) return true;
