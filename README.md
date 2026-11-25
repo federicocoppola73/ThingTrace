@@ -4,7 +4,7 @@ ThingTrace is an offline-first inventory and archive app for physical containers
 
 ## Current development status
 
-The repository now includes an Expo SDK 58 application scaffold and the first end-to-end source flow: create a container, select photos, copy them to private app storage and display them from the archive. Device installation and runtime validation are still pending.
+The repository now includes an Expo SDK 58 application with container and location management, item inventory and movement history, photo storage, and a first document archive workflow. Device installation and runtime validation of the complete feature set are still pending.
 
 ## Technical baseline
 
