@@ -17,6 +17,14 @@ The repository now includes an Expo SDK 58 application scaffold and the first en
 - `expo-camera` for in-app camera capture and QR scanning
 - `expo-crypto` for UUID generation
 
+## Location management
+
+- Hierarchical locations: home/site → area → room → position.
+- Assign a location when creating or editing a container.
+- Search containers by their full location path.
+- Deletion safeguards prevent removing locations still used by containers or child locations.
+- See `docs/locations.md` for the data model and workflows.
+
 ## Photo archive module
 
 - `src/foto/fotoService.ts`: application-facing photo operations.
