@@ -35,6 +35,21 @@ export async function runItemMigration(db: SQLiteDatabase): Promise<void> {
       );
       CREATE INDEX IF NOT EXISTS idx_item_movements_item_date
         ON item_movements(item_id, moved_at DESC);
+      CREATE TRIGGER IF NOT EXISTS trg_container_delete_item_movement
+      BEFORE DELETE ON containers
+      BEGIN
+        INSERT INTO item_movements (
+          id, item_id, from_container_id, to_container_id,
+          from_container_name, to_container_name, note, moved_at
+        )
+        SELECT
+          lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' ||
+          substr(lower(hex(randomblob(2))), 2) || '-' ||
+          substr('89ab', abs(random()) % 4 + 1, 1) ||
+          substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6))),
+          id, OLD.id, NULL, OLD.name, NULL, 'Contenitore eliminato', strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+        FROM items WHERE current_container_id = OLD.id;
+      END;
     `);
   });
 }
