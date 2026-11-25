@@ -13,7 +13,7 @@ const ITEM_SELECT=`WITH RECURSIVE lp(id,home_id,path) AS(SELECT id,home_id,name 
  FROM items i LEFT JOIN containers c ON c.id=i.current_container_id`;
 async function label(db:Awaited<ReturnType<typeof getDatabase>>,d:ItemDestination):Promise<string|null>{
  if(d.kind==='none')return null;
- if(d.kind==='container'){const r=await db.getFirstAsync<{name:string}>('SELECT name FROM containers WHERE id=?',d.id);if(!r)throw Error('Il contenitore selezionato non esiste più.');return r.name;}
+ if(d.kind==='container'){const r=await db.getFirstAsync<{value:string}>(`WITH RECURSIVE lp(id,home_id,path) AS(SELECT id,home_id,name FROM locations WHERE parent_id IS NULL UNION ALL SELECT l.id,l.home_id,lp.path||' › '||l.name FROM locations l JOIN lp ON l.parent_id=lp.id) SELECT c.name||CASE WHEN c.location_id IS NULL THEN '' ELSE ' · '||(SELECT h.name||' · '||lp.path FROM lp JOIN homes h ON h.id=lp.home_id WHERE lp.id=c.location_id) END AS value FROM containers c WHERE c.id=?`,d.id);if(!r)throw Error('Il contenitore selezionato non esiste più.');return r.value;}
  const r=await db.getFirstAsync<{value:string}>(`WITH RECURSIVE p(id,home_id,path) AS(SELECT id,home_id,name FROM locations WHERE parent_id IS NULL UNION ALL SELECT l.id,l.home_id,p.path||' › '||l.name FROM locations l JOIN p ON l.parent_id=p.id) SELECT h.name||' · '||p.path AS value FROM p JOIN homes h ON h.id=p.home_id WHERE p.id=?`,d.id);
  if(!r)throw Error('L’ubicazione selezionata non esiste più.');return r.value;
 }
