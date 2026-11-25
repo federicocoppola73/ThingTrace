@@ -31,8 +31,8 @@ export function ContainerPicker({ containers, locations, selectedContainerId, on
     .filter((item) => item.homeId === homeId && item.parentId === parentId)
     .sort((a, b) => a.name.localeCompare(b.name, 'it')), [locations, homeId, parentId]);
   const browseContainers = useMemo(() => containers
-    .filter((item) => item.locationId === parentId)
-    .sort((a, b) => a.name.localeCompare(b.name, 'it')), [containers, parentId]);
+    .filter((item) => parentId ? item.locationId === parentId : !homeId && item.locationId === null)
+    .sort((a, b) => a.name.localeCompare(b.name, 'it')), [containers, homeId, parentId]);
   const searchResults = useMemo(() => {
     const term = normalize(query.trim());
     if (!term) return [];
@@ -92,14 +92,11 @@ export function ContainerPicker({ containers, locations, selectedContainerId, on
                 {!homeId ? homes.map(([id, name]) => (
                   <Pressable key={id} onPress={() => { setHomeId(id); setParentId(null); }} style={styles.browseRow}><Text style={styles.itemName}>{name}</Text><Text style={styles.arrow}>›</Text></Pressable>
                 )) : null}
-                {!homeId ? containers.filter((item) => item.locationId === null).map((item) => (
-                  <Pressable key={item.id} onPress={() => choose(item.id)} style={styles.resultRow}><View style={styles.resultCopy}><Text style={styles.itemName}>{item.name}</Text><Text style={styles.itemPath}>Senza ubicazione · {item.typeLabel}</Text></View><Text style={styles.chooseText}>Scegli</Text></Pressable>
-                )) : null}
                 {browseLocations.map((location) => (
                   <Pressable key={location.id} onPress={() => setParentId(location.id)} style={styles.browseRow}><View style={styles.resultCopy}><Text style={styles.itemName}>{location.name}</Text><Text style={styles.itemPath}>{location.type === 'AREA' ? 'Stanza/Zona' : location.type === 'ROOM' ? 'Luogo' : 'Posizione'}</Text></View><Text style={styles.arrow}>›</Text></Pressable>
                 ))}
                 {browseContainers.map((item) => (
-                  <Pressable key={item.id} onPress={() => choose(item.id)} style={styles.resultRow}><View style={styles.resultCopy}><Text style={styles.itemName}>{item.name}</Text><Text style={styles.itemPath}>{item.typeLabel}</Text></View><Text style={styles.chooseText}>Scegli</Text></Pressable>
+                  <Pressable key={item.id} onPress={() => choose(item.id)} style={styles.resultRow}><View style={styles.resultCopy}><Text style={styles.itemName}>{item.name}</Text><Text style={styles.itemPath}>{item.locationName ?? 'Senza ubicazione'} · {item.typeLabel}</Text></View><Text style={styles.chooseText}>Scegli</Text></Pressable>
                 ))}
                 {homeId && browseLocations.length === 0 && browseContainers.length === 0 ? <Text style={styles.empty}>Nessun contenitore o livello successivo in questa ubicazione.</Text> : null}
               </ScrollView>
