@@ -34,3 +34,6 @@ La creazione e lo spostamento di un oggetto usano un selettore contenitori con m
 La cancellazione di un oggetto elimina anche gli eventi del suo storico. Le fotografie collegate esclusivamente a quell'oggetto vengono spostate logicamente nel cestino (il file archivio non viene cancellato); le fotografie ancora collegate ad altre entità restano attive. L'operazione è confermata esplicitamente dall'utente e non è reversibile per l'oggetto e il relativo storico.
 
 I moduli di creazione e modifica usano una vista che si adatta alla tastiera e mantiene scorrevole il contenuto; su Android la finestra ridimensiona il layout quando compare la tastiera.
+
+
+Quando un oggetto viene eliminato, le fotografie collegate esclusivamente a esso vengono eliminate definitivamente dal database e dall'archivio privato. Se una fotografia è condivisa con un'altra entità, viene rimossa solo l'associazione all'oggetto e il file resta disponibile all'altra entità. Le fotografie legacy già presenti nel cestino senza alcuna associazione non possono essere ripristinate senza un destinatario; possono essere eliminate definitivamente dal cestino.
