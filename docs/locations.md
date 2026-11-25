@@ -3,11 +3,11 @@
 ThingTrace usa una gerarchia locale per descrivere dove sono conservati i contenitori:
 
 1. **Sede** (`homes`): Casa, Ufficio, Magazzino.
-2. **Area** (`locations.location_type = AREA`): Garage, Piano terra, Archivio.
-3. **Stanza** (`ROOM`): Cucina, Camera, Ufficio amministrativo.
-4. **Posizione** (`POSITION`): Armadio 2, Scaffale B, Ripiano 3.
+2. **Stanza/Zona** (`locations.location_type = AREA`): Cucina, Garage, Giardino, Ufficio.
+3. **Luogo** (`ROOM`): Armadio, Scaffale, Ripostiglio, Archivio.
+4. **Posizione** (`POSITION`): Ripiano 3, Cassetto superiore, Scomparto B.
 
-Le sedi e le ubicazioni sono archiviate in SQLite. Ogni ubicazione appartiene a una sede; le stanze appartengono a un'area e le posizioni a una stanza. Il repository verifica la gerarchia prima dell'inserimento.
+Le sedi e le ubicazioni sono archiviate in SQLite. Ogni ubicazione appartiene a una sede; i luoghi appartengono a una stanza/zona e le posizioni a un luogo. I nomi tecnici dei tipi già presenti nel database (`AREA`, `ROOM`, `POSITION`) restano invariati: cambia solo la denominazione mostrata nell'interfaccia, quindi non serve migrare i dati esistenti.
 
 I contenitori usano il campo esistente `containers.location_id`. L'ubicazione è facoltativa e può essere assegnata durante la creazione o aggiornata dalla schermata di modifica del contenitore. La lista e il dettaglio mostrano il percorso completo della sede e dell'ubicazione.
 
