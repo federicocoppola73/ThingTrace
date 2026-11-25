@@ -128,7 +128,7 @@ export default function LocationsScreen() {
           <Pressable onPress={() => begin({ kind: 'location', mode: 'rename', id: location.id }, location.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
           <Pressable onPress={() => confirmDeleteLocation(location)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
         </View>
-        <DocumentLinksSection entity={{ type: 'LOCATION', id: location.id }} />
+        <DocumentLinksSection entity={{ type: 'LOCATION', id: location.id }} hideWhenEmpty />
         {location.type === 'AREA' ? (
           <Pressable style={styles.addChild} onPress={() => begin({ kind: 'location', mode: 'create', homeId, parentId: location.id, type: 'ROOM' })}>
             <Text style={styles.addChildText}>＋ Aggiungi luogo</Text>
