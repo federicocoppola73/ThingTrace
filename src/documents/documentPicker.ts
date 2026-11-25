@@ -1,22 +1,31 @@
-import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { File } from 'expo-file-system';
 import { DocumentStorage } from './documentStorage';
 import { insertDocumentAttachment, type DocumentAttachment } from '@/repositories/documentRepository';
 
+const DOCUMENT_MIME_TYPES = [
+ 'application/pdf','image/*','text/plain',
+ 'application/msword',
+ 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+ 'application/vnd.ms-excel',
+ 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+];
+
 export async function pickDocumentAttachments(documentId:string){
- const result=await DocumentPicker.getDocumentAsync({type:['application/pdf','image/*','text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],multiple:true,copyToCacheDirectory:true});
+ // Use Expo FileSystem's native SAF picker: it returns File handles with the
+ // Android URI permission already attached, unlike a raw content:// string.
+ const result=await File.pickFileAsync({multipleFiles:true,mimeTypes:DOCUMENT_MIME_TYPES});
  if(result.canceled)return{canceled:true,imported:0,failures:[] as string[]};
  const storage=new DocumentStorage();let imported=0;const failures:string[]=[];
- for(const asset of result.assets){
+ for(const selectedFile of result.result){
   let stored:Awaited<ReturnType<DocumentStorage['import']>>|null=null;
   try{
-   // Import immediately after selection: Android provider grants may be temporary.
-   stored=await storage.import(asset.uri,asset.name,asset.mimeType);
+   stored=await storage.import(selectedFile.uri,selectedFile.name,selectedFile.type);
    const row:DocumentAttachment={...stored,documentId,createdAt:new Date().toISOString()};
    await insertDocumentAttachment(row);imported++;
   }catch(e){
    if(stored)try{await storage.removeDirectory(stored.filePath)}catch{}
-   failures.push(asset.name+': '+(e instanceof Error?e.message:'errore importazione'));
+   failures.push(selectedFile.name+': '+(e instanceof Error?e.message:'errore importazione'));
   }
  }
  return{canceled:false,imported,failures};
