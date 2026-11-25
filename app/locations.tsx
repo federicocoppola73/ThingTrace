@@ -1,12 +1,13 @@
 import { DocumentLinksSection } from '@/components/DocumentLinksSection';
 import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   createHome, createLocation, deleteHome, deleteLocation, getHomeDeleteImpact, getLocationDeleteImpact, listHomes, listLocations,
   renameHome, renameLocation, type HomeRecord, type LocationRecord, type LocationType
 } from '@/repositories/locationRepository';
+import { linkDocument } from '@/repositories/documentRepository';
 
 type Editor =
   | { kind: 'home'; mode: 'create' | 'rename'; id?: string }
@@ -15,6 +16,8 @@ type Editor =
 const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Stanza/Zona', ROOM: 'Luogo', POSITION: 'Posizione' };
 
 export default function LocationsScreen() {
+  const router = useRouter();
+  const { documentId } = useLocalSearchParams<{ documentId?: string }>();
   const [homes, setHomes] = useState<HomeRecord[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [name, setName] = useState('');
@@ -51,7 +54,11 @@ export default function LocationsScreen() {
         else if (editor.id) await renameHome(editor.id, name);
       } else {
         if (editor.mode === 'create' && editor.homeId && editor.type) {
-          await createLocation({ homeId: editor.homeId, parentId: editor.parentId ?? null, name, type: editor.type });
+          const createdId = await createLocation({ homeId: editor.homeId, parentId: editor.parentId ?? null, name, type: editor.type });
+          if (documentId) {
+            await linkDocument(documentId, { type: 'LOCATION', id: createdId });
+            router.replace({ pathname: '/documents/[id]', params: { id: documentId } });
+          }
         } else if (editor.mode === 'rename' && editor.id) await renameLocation(editor.id, name);
       }
       setEditor(null);
