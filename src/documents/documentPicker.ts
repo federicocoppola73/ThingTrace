@@ -39,8 +39,8 @@ export async function captureDocumentPhoto(documentId:string,documentTitle:strin
  const asset=result.assets[0];
  const existing=await listDocumentAttachments(documentId);
  const photoCount=existing.filter(a=>a.mimeType.startsWith('image/')).length+1;
- const slug=documentTitle.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,48)||'documento';
- const name=slug+'_foto_'+String(photoCount).padStart(2,'0')+'.jpg';
+ const slug=documentTitle.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,48)||'documento';
+ const name=slug+'_'+String(photoCount).padStart(2,'0')+'.jpg';
  const storage=new DocumentStorage();
  let stored:Awaited<ReturnType<DocumentStorage['import']>>|null=null;
  try{
