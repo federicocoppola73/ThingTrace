@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createContainer } from '@/repositories/containerRepository';
 import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
@@ -23,7 +23,7 @@ export default function NewContainerScreen() {
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
 
-  useEffect(() => { listLocations().then(setLocations).catch((error) => Alert.alert('Errore ubicazioni', error instanceof Error ? error.message : 'Impossibile caricare le ubicazioni.')); }, []);
+  useFocusEffect(useCallback(() => { let active = true; listLocations().then((items) => { if (active) setLocations(items); }).catch((error) => Alert.alert('Errore ubicazioni', error instanceof Error ? error.message : 'Impossibile caricare le ubicazioni.')); return () => { active = false; }; }, []));
 
   async function save() {
     if (!name.trim()) {
