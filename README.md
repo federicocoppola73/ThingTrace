@@ -14,6 +14,7 @@ The repository now includes an Expo SDK 58 application scaffold and the first en
 - `expo-sqlite` for relational metadata
 - `expo-file-system` for app-private file storage
 - `expo-image-picker` for photo import
+- `expo-document-picker` for PDF and file import
 - `expo-camera` for in-app camera capture and QR scanning
 - `expo-crypto` for UUID generation
 
@@ -27,11 +28,19 @@ The repository now includes an Expo SDK 58 application scaffold and the first en
 
 ## Item inventory and movement history
 
-- Create, edit, search and inspect items with quantity, description, notes and optional container assignment.
+- Create, edit, search and inspect items with quantity, description, notes and optional container or direct location assignment.
 - Attach photos to items using the same private archive as container photos, including camera capture and gallery import.
-- Move items between containers or leave them unassigned; every actual change is recorded transactionally in `item_movements`.
+- Move items between containers, direct locations or unassigned; every actual change is recorded transactionally in `item_movements`.
 - Movement records preserve the source/destination container names as snapshots, even if a container is later deleted.
 - See `docs/items.md` for the data model and movement semantics.
+
+## Document archive
+
+- Independent document records with title, category, description, date, number, issuer, optional expiry and notes.
+- Multiple PDF/image/file attachments copied to private app storage with SHA-256 checksums.
+- Reusable links from documents to items, containers and locations; linking does not duplicate the document or its attachments.
+- Central search, document detail/edit, native attachment preview and contextual create/link flows.
+- See `docs/documents.md` for the data model and workflows.
 
 ## Photo archive module
 
@@ -55,10 +64,10 @@ Install Expo-compatible native dependencies from the app root with `npx expo ins
 ## Not implemented yet
 
 - Device-verified dependency installation and native builds.
-- Full document entity workflows.
+- Additional document features such as expiry reminders, OCR and document versioning.
 - QR scanning UI.
 - Thumbnail generation and photo gallery components.
 - Backup/restore integration.
 - Automated TypeScript, unit and Android/iOS device tests.
 
-QR workflows, backup/restore, document workflows, thumbnail processing and automated device tests are subsequent milestones. The current branch is an initial development build, not a tested release.
+QR workflows, backup/restore, expiry reminders/OCR, thumbnail processing and automated device tests are subsequent milestones. The current branch is an initial development build, not a tested release.
