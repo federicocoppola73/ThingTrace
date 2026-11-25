@@ -25,7 +25,7 @@ export default function ContainerDetailScreen() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
-  const cameraRef = useRef<CameraViewType>(null);
+  const cameraRef = useRef<CameraViewType | null>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const refresh = useCallback(async () => {
