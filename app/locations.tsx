@@ -1,0 +1,198 @@
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  createHome, createLocation, deleteHome, deleteLocation, listHomes, listLocations,
+  renameHome, renameLocation, type HomeRecord, type LocationRecord, type LocationType
+} from '@/repositories/locationRepository';
+
+type Editor =
+  | { kind: 'home'; mode: 'create' | 'rename'; id?: string }
+  | { kind: 'location'; mode: 'create' | 'rename'; id?: string; homeId?: string; parentId?: string | null; type?: LocationType };
+
+const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Area', ROOM: 'Stanza', POSITION: 'Posizione' };
+
+export default function LocationsScreen() {
+  const [homes, setHomes] = useState<HomeRecord[]>([]);
+  const [locations, setLocations] = useState<LocationRecord[]>([]);
+  const [name, setName] = useState('');
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const refresh = useCallback(async () => {
+    try {
+      const [nextHomes, nextLocations] = await Promise.all([listHomes(), listLocations()]);
+      setHomes(nextHomes);
+      setLocations(nextLocations);
+    } catch (error) {
+      Alert.alert('Errore ubicazioni', error instanceof Error ? error.message : 'Impossibile caricare le ubicazioni.');
+    } finally { setLoading(false); }
+  }, []);
+
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
+  function begin(next: Editor, initialName = '') {
+    setEditor(next);
+    setName(initialName);
+  }
+
+  async function save() {
+    if (!editor || !name.trim()) {
+      Alert.alert('Nome necessario', 'Inserisci un nome prima di salvare.');
+      return;
+    }
+    setSaving(true);
+    try {
+      if (editor.kind === 'home') {
+        if (editor.mode === 'create') await createHome(name);
+        else if (editor.id) await renameHome(editor.id, name);
+      } else {
+        if (editor.mode === 'create' && editor.homeId && editor.type) {
+          await createLocation({ homeId: editor.homeId, parentId: editor.parentId ?? null, name, type: editor.type });
+        } else if (editor.mode === 'rename' && editor.id) await renameLocation(editor.id, name);
+      }
+      setEditor(null);
+      setName('');
+      await refresh();
+    } catch (error) {
+      Alert.alert('Operazione non riuscita', error instanceof Error ? error.message : 'Errore imprevisto.');
+    } finally { setSaving(false); }
+  }
+
+  function confirmDeleteHome(home: HomeRecord) {
+    Alert.alert('Eliminare la sede?', `Vuoi eliminare "${home.name}"? L’operazione è possibile solo se non contiene ubicazioni.`, [
+      { text: 'Annulla', style: 'cancel' },
+      { text: 'Elimina', style: 'destructive', onPress: async () => {
+        try { await deleteHome(home.id); await refresh(); }
+        catch (error) { Alert.alert('Impossibile eliminare', error instanceof Error ? error.message : 'Errore imprevisto.'); }
+      } }
+    ]);
+  }
+
+  function confirmDeleteLocation(location: LocationRecord) {
+    Alert.alert('Eliminare l’ubicazione?', `Vuoi eliminare "${location.name}"? Le ubicazioni con elementi collegati non possono essere eliminate.`, [
+      { text: 'Annulla', style: 'cancel' },
+      { text: 'Elimina', style: 'destructive', onPress: async () => {
+        try { await deleteLocation(location.id); await refresh(); }
+        catch (error) { Alert.alert('Impossibile eliminare', error instanceof Error ? error.message : 'Errore imprevisto.'); }
+      } }
+    ]);
+  }
+
+  function renderLocation(location: LocationRecord, homeId: string, parentId: string | null, type: LocationType, depth: number): React.ReactNode {
+    return (
+      <View key={location.id} style={[styles.locationCard, { marginLeft: depth * 14 }]}>
+        <View style={styles.locationHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.locationType}>{TYPE_LABEL[location.type].toUpperCase()}</Text>
+            <Text style={styles.locationName}>{location.name}</Text>
+          </View>
+          <Pressable onPress={() => begin({ kind: 'location', mode: 'rename', id: location.id }, location.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
+          <Pressable onPress={() => confirmDeleteLocation(location)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
+        </View>
+        {location.type === 'AREA' ? (
+          <Pressable style={styles.addChild} onPress={() => begin({ kind: 'location', mode: 'create', homeId, parentId: location.id, type: 'ROOM' })}>
+            <Text style={styles.addChildText}>＋ Aggiungi stanza</Text>
+          </Pressable>
+        ) : null}
+        {location.type === 'ROOM' ? (
+          <Pressable style={styles.addChild} onPress={() => begin({ kind: 'location', mode: 'create', homeId, parentId: location.id, type: 'POSITION' })}>
+            <Text style={styles.addChildText}>＋ Aggiungi posizione</Text>
+          </Pressable>
+        ) : null}
+        {locations.filter((child) => child.parentId === location.id).map((child) =>
+          renderLocation(child, homeId, child.parentId, child.type, depth + 1)
+        )}
+      </View>
+    );
+  }
+
+  if (loading) return <View style={styles.center}><Text>Caricamento ubicazioni...</Text></View>;
+
+  return (
+    <ScrollView contentContainerStyle={styles.page}>
+      <Text style={styles.intro}>Organizza i luoghi in cui conservi contenitori e oggetti. La struttura è: sede → area → stanza → posizione.</Text>
+
+      {editor ? (
+        <View style={styles.editor}>
+          <Text style={styles.editorTitle}>
+            {editor.mode === 'create' ? 'Nuova ' : 'Rinomina '}
+            {editor.kind === 'home' ? 'sede' : editor.type ? TYPE_LABEL[editor.type].toLowerCase() : 'ubicazione'}
+          </Text>
+          <TextInput value={name} onChangeText={setName} placeholder="Inserisci un nome" style={styles.input} autoFocus />
+          <View style={styles.editorActions}>
+            <Pressable onPress={() => { setEditor(null); setName(''); }} style={styles.cancel}><Text style={styles.cancelText}>Annulla</Text></Pressable>
+            <Pressable disabled={saving} onPress={save} style={styles.save}><Text style={styles.saveText}>{saving ? 'Salvataggio...' : 'Salva'}</Text></Pressable>
+          </View>
+        </View>
+      ) : null}
+
+      {homes.map((home) => {
+        const areas = locations.filter((location) => location.homeId === home.id && location.type === 'AREA');
+        return (
+          <View key={home.id} style={styles.homeCard}>
+            <View style={styles.homeHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.homeLabel}>SEDE</Text>
+                <Text style={styles.homeName}>{home.name}</Text>
+              </View>
+              <Pressable onPress={() => begin({ kind: 'home', mode: 'rename', id: home.id }, home.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
+              <Pressable onPress={() => confirmDeleteHome(home)} style={styles.smallAction}><Text style={styles.deleteText}>×</Text></Pressable>
+            </View>
+            <Pressable style={styles.addArea} onPress={() => begin({ kind: 'location', mode: 'create', homeId: home.id, parentId: null, type: 'AREA' })}>
+              <Text style={styles.addAreaText}>＋ Aggiungi area</Text>
+            </Pressable>
+            {areas.map((area) => renderLocation(area, home.id, null, 'AREA', 0))}
+            {areas.length === 0 ? <Text style={styles.emptyText}>Nessuna area. Aggiungi ad esempio Garage, Piano terra o Magazzino.</Text> : null}
+          </View>
+        );
+      })}
+
+      {homes.length === 0 ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyTitle}>Nessuna sede configurata</Text>
+          <Text style={styles.emptyText}>Crea una sede, ad esempio Casa, Ufficio o Magazzino. Poi potrai aggiungere aree, stanze e posizioni.</Text>
+        </View>
+      ) : null}
+
+      <Pressable style={styles.primary} onPress={() => begin({ kind: 'home', mode: 'create' })}>
+        <Text style={styles.primaryText}>＋  Crea sede</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  page: { padding: 20, paddingBottom: 40 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  intro: { color: '#68715E', lineHeight: 21, marginBottom: 20 },
+  editor: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DADFD3', borderRadius: 16, padding: 16, marginBottom: 18 },
+  editorTitle: { color: '#252923', fontSize: 16, fontWeight: '800', marginBottom: 12 },
+  input: { backgroundColor: '#FFFFFF', borderColor: '#E4E2DA', borderWidth: 1, borderRadius: 12, padding: 14, fontSize: 16, color: '#252923' },
+  editorActions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 10, marginTop: 12 },
+  cancel: { padding: 12 },
+  cancelText: { color: '#68715E', fontWeight: '700' },
+  save: { backgroundColor: '#43533C', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10 },
+  saveText: { color: '#FFFFFF', fontWeight: '800' },
+  homeCard: { backgroundColor: '#FFFFFF', borderRadius: 17, borderWidth: 1, borderColor: '#E8E6DE', padding: 15, marginBottom: 14 },
+  homeHeader: { flexDirection: 'row', alignItems: 'center' },
+  homeLabel: { color: '#818779', fontSize: 10, letterSpacing: 1.2, fontWeight: '800' },
+  homeName: { color: '#252923', fontSize: 19, fontWeight: '800', marginTop: 3 },
+  smallAction: { paddingHorizontal: 8, paddingVertical: 7 },
+  actionText: { color: '#526447', fontSize: 12, fontWeight: '700' },
+  deleteText: { color: '#A33D32', fontSize: 21, fontWeight: '700' },
+  addArea: { backgroundColor: '#EEF0E8', borderRadius: 10, padding: 11, alignItems: 'center', marginTop: 13 },
+  addAreaText: { color: '#43533C', fontWeight: '800', fontSize: 13 },
+  locationCard: { borderLeftWidth: 2, borderLeftColor: '#DDE2D5', paddingLeft: 10, marginTop: 12 },
+  locationHeader: { flexDirection: 'row', alignItems: 'center' },
+  locationType: { color: '#8A907F', fontSize: 9, letterSpacing: 1, fontWeight: '800' },
+  locationName: { color: '#30352D', fontSize: 15, fontWeight: '700', marginTop: 2 },
+  addChild: { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 5 },
+  addChildText: { color: '#526447', fontSize: 12, fontWeight: '700' },
+  empty: { borderWidth: 1, borderStyle: 'dashed', borderColor: '#DADFD3', borderRadius: 16, padding: 22, alignItems: 'center' },
+  emptyTitle: { color: '#30352D', fontWeight: '800', fontSize: 16 },
+  emptyText: { color: '#777D72', lineHeight: 20, marginTop: 8, fontSize: 12 },
+  primary: { backgroundColor: '#43533C', borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
+  primaryText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+});
