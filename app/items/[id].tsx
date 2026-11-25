@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import {
-  Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
+  Alert, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { CameraView as CameraViewType } from 'expo-camera';
-import { getItem, listItemMovements, moveItem, type ItemMovement, type ItemSummary } from '@/repositories/itemRepository';
+import { deleteItem, getItem, listItemMovements, moveItem, type ItemMovement, type ItemSummary } from '@/repositories/itemRepository';
 import { listContainers, type ContainerSummary } from '@/repositories/containerRepository';
 import { getDatabase } from '@/database/database';
 import { FotoService } from '@/foto/fotoService';
@@ -59,6 +59,24 @@ export default function ItemDetailScreen() {
       setMoveOpen(false);
       await refresh();
     } catch (error) { Alert.alert('Spostamento non riuscito', error instanceof Error ? error.message : 'Impossibile spostare l’oggetto.'); }
+  }
+  function confirmDeleteItem() {
+    if (!id || !item) return;
+    Alert.alert(
+      'Eliminare questo oggetto?',
+      'L’oggetto e il suo storico degli spostamenti verranno eliminati. Le fotografie associate non condivise con altri elementi saranno conservate nel cestino e potranno essere gestite da lì. Questa operazione non è annullabile.',
+      [
+        { text: 'Annulla', style: 'cancel' },
+        { text: 'Elimina oggetto', style: 'destructive', onPress: async () => {
+          try {
+            await deleteItem(id);
+            router.replace('/items');
+          } catch (error) {
+            Alert.alert('Eliminazione non riuscita', error instanceof Error ? error.message : 'Impossibile eliminare l’oggetto.');
+          }
+        } },
+      ]
+    );
   }
   async function addPhotos() {
     if (!id) return;
@@ -114,6 +132,7 @@ export default function ItemDetailScreen() {
           <View style={styles.actions}>
             <Pressable style={styles.editButton} onPress={() => router.push({ pathname: '/items/edit', params: { id: item.id } })}><Text style={styles.editText}>Modifica oggetto</Text></Pressable>
             <Pressable style={styles.moveButton} onPress={openMove}><Text style={styles.moveText}>Sposta</Text></Pressable>
+            <Pressable style={styles.deleteItemButton} onPress={confirmDeleteItem}><Text style={styles.deleteItemText}>Elimina</Text></Pressable>
           </View>
         </View>
 
@@ -139,7 +158,8 @@ export default function ItemDetailScreen() {
       </ScrollView>
 
       <Modal visible={moveOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setMoveOpen(false)}>
-        <ScrollView contentContainerStyle={styles.modalPage}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.modalPage} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <Text style={styles.modalTitle}>Sposta oggetto</Text>
           <Text style={styles.modalHint}>Seleziona il nuovo contenitore. Ogni variazione verrà registrata nello storico.</Text>
           <Pressable onPress={() => setDestinationId(null)} style={[styles.containerOption, destinationId === null && styles.containerSelected]}><Text style={[styles.containerOptionText, destinationId === null && styles.containerSelectedText]}>Non assegnato</Text></Pressable>
@@ -154,6 +174,7 @@ export default function ItemDetailScreen() {
           <Pressable style={styles.button} onPress={confirmMove}><Text style={styles.buttonText}>Conferma spostamento</Text></Pressable>
           <Pressable style={styles.cancelButton} onPress={() => setMoveOpen(false)}><Text style={styles.cancelText}>Annulla</Text></Pressable>
         </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
 
       <Modal visible={cameraOpen} animationType="slide" hardwareAccelerated onRequestClose={() => setCameraOpen(false)}>
@@ -187,7 +208,9 @@ const styles = StyleSheet.create({
   location: { color: '#5E6258', marginTop: 7, lineHeight: 20 }, body: { color: '#5E6258', lineHeight: 21, marginTop: 12 },
   actions: { flexDirection: 'row', gap: 9, marginTop: 18 }, editButton: { backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 11 },
   editText: { color: '#43533C', fontWeight: '800', fontSize: 13 }, moveButton: { backgroundColor: '#43533C', borderRadius: 10, paddingHorizontal: 18, paddingVertical: 11 },
-  moveText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 }, sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+  moveText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
+  deleteItemButton: { backgroundColor: '#F6E9E6', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 11 },
+  deleteItemText: { color: '#9A4137', fontWeight: '800', fontSize: 13 }, sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   sectionTitle: { flex: 1, color: '#252923', fontSize: 20, fontWeight: '800' }, grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   photoWrap: { position: 'relative' }, photo: { width: 104, height: 104, borderRadius: 12, backgroundColor: '#E9E8E1' },
   photoDelete: { position: 'absolute', top: 4, right: 4, width: 26, height: 26, borderRadius: 13, backgroundColor: '#252923', alignItems: 'center', justifyContent: 'center' },
