@@ -15,7 +15,8 @@
       "package": "it.thingtrace.app",
       "adaptiveIcon": {
         "backgroundColor": "#F4F1EA"
-      }
+      },
+      "softwareKeyboardLayoutMode": "resize"
     },
     "plugins": [
       "expo-router",

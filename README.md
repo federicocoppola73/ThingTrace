@@ -25,6 +25,14 @@ The repository now includes an Expo SDK 58 application scaffold and the first en
 - Cascading deletion removes a whole site or location subtree; confirmation reports affected locations and containers. Containers and photos are preserved and become unassigned.
 - See `docs/locations.md` for the data model and workflows.
 
+## Item inventory and movement history
+
+- Create, edit, search and inspect items with quantity, description, notes and optional container assignment.
+- Attach photos to items using the same private archive as container photos, including camera capture and gallery import.
+- Move items between containers or leave them unassigned; every actual change is recorded transactionally in `item_movements`.
+- Movement records preserve the source/destination container names as snapshots, even if a container is later deleted.
+- See `docs/items.md` for the data model and movement semantics.
+
 ## Photo archive module
 
 - `src/foto/fotoService.ts`: application-facing photo operations.
@@ -47,10 +55,10 @@ Install Expo-compatible native dependencies from the app root with `npx expo ins
 ## Not implemented yet
 
 - Device-verified dependency installation and native builds.
-- Full item and document entity workflows.
+- Full document entity workflows.
 - QR scanning UI.
 - Thumbnail generation and photo gallery components.
 - Backup/restore integration.
 - Automated TypeScript, unit and Android/iOS device tests.
 
-QR workflows, backup/restore, thumbnail processing, remaining entity workflows and automated device tests are subsequent milestones. The current branch is an initial development build, not a tested release.
+QR workflows, backup/restore, document workflows, thumbnail processing and automated device tests are subsequent milestones. The current branch is an initial development build, not a tested release.

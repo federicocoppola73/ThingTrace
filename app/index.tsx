@@ -78,6 +78,7 @@ export default function HomeScreen() {
         ))
       )}
 
+      <Pressable style={styles.trashButton} onPress={() => router.push('/items')}><Text style={styles.trashButtonText}>◇  Gestisci oggetti</Text></Pressable>
       <Pressable style={styles.trashButton} onPress={() => router.push('/locations')}><Text style={styles.trashButtonText}>⌖  Gestisci sedi e ubicazioni</Text></Pressable>
       <Pressable style={styles.trashButton} onPress={() => router.push('/trash')}><Text style={styles.trashButtonText}>▤  Cestino delle fotografie</Text></Pressable>
       <Pressable style={styles.primaryButton} onPress={() => router.push('/containers/new')}>

@@ -92,6 +92,9 @@ export class FotoService {
     const photo = await this.repository.getById(photoId);
     if (!photo) throw new PhotoError('PHOTO_NOT_FOUND', 'The photo was not found.');
     if (!photo.deletedAt) throw new PhotoError('PHOTO_NOT_IN_TRASH', 'The photo is not in the trash.');
+    if (await this.repository.countLinks(photoId) === 0) {
+      throw new PhotoError('PHOTO_HAS_NO_LINKS', 'This photo is no longer associated with an item or document and cannot be restored.');
+    }
     const integrity = await this.verifyPhoto(photoId);
     if (!integrity.exists || !integrity.sizeMatches || integrity.checksumMatches === false) {
       throw new PhotoError('PHOTO_FILE_MISSING', 'The archived image is missing or damaged and cannot be restored.');
@@ -101,6 +104,20 @@ export class FotoService {
 
   async getTrash(): Promise<PhotoRecord[]> {
     return this.repository.getTrash();
+  }
+
+  async deleteEntityPhotos(entity: PhotoEntity): Promise<void> {
+    // Detach every photo from this entity. Delete the file only when no other
+    // entity still references it; shared photos remain available elsewhere.
+    const photos = await this.repository.getByEntity(entity, true);
+    for (const photo of photos) {
+      await this.repository.unlink(photo.id, entity);
+      const remainingLinks = await this.repository.countLinks(photo.id);
+      if (remainingLinks === 0) {
+        await this.repository.deleteRecord(photo.id);
+        this.storage.deletePhotoDirectory(photo.id);
+      }
+    }
   }
 
   async permanentlyDelete(photoId: string): Promise<void> {
