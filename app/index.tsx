@@ -50,6 +50,7 @@ export default function HomeScreen() {
         ))
       )}
 
+      <Pressable style={styles.trashButton} onPress={() => router.push('/trash')}><Text style={styles.trashButtonText}>▤  Cestino delle fotografie</Text></Pressable>
       <Pressable style={styles.primaryButton} onPress={() => router.push('/containers/new')}>
         <Text style={styles.primaryButtonText}>＋  Crea contenitore</Text>
       </Pressable>
@@ -78,6 +79,8 @@ const styles = StyleSheet.create({
   cardMeta: { fontSize: 12, color: '#81867C', marginTop: 4 },
   photoCount: { fontSize: 12, color: '#5D6B50', fontWeight: '700', marginTop: 5 },
   chevron: { fontSize: 26, color: '#9A9E95', marginLeft: 8 },
+  trashButton: { backgroundColor: '#EEF0E8', padding: 15, borderRadius: 15, alignItems: 'center', marginTop: 18 },
+  trashButtonText: { color: '#43533C', fontSize: 14, fontWeight: '800' },
   primaryButton: { backgroundColor: '#43533C', padding: 17, borderRadius: 15, alignItems: 'center', marginTop: 20 },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   footer: { textAlign: 'center', color: '#92968E', fontSize: 12, marginTop: 20 },
