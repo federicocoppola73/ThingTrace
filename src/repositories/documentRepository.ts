@@ -11,7 +11,7 @@ const mapDocument=(r:DocumentRow):DocumentRecord=>({id:r.id,title:r.title,descri
 const SELECT=`SELECT d.*,(SELECT COUNT(*) FROM document_attachments a WHERE a.document_id=d.id) AS attachment_count,(SELECT COUNT(*) FROM document_links l WHERE l.document_id=d.id) AS link_count FROM documents d`;
 export async function listDocuments(search=''):Promise<DocumentRecord[]>{
  const db=await getDatabase(),q=search.trim().toLocaleLowerCase();
- const rows=await db.getAllAsync<DocumentRow>(SELECT+(q?" WHERE lower(d.title) LIKE ? OR lower(coalesce(d.description,'')) LIKE ? OR lower(coalesce(d.document_number,'')) LIKE ? OR lower(coalesce(d.issuer,'')) LIKE ? OR lower(coalesce(d.notes,'')) LIKE ? OR lower(d.category) LIKE ?":'')+' ORDER BY d.updated_at DESC',...(q?Array(6).fill('%'+q+'%'):[]));
+ const rows=await db.getAllAsync<DocumentRow>(SELECT+(q?" WHERE lower(d.title) LIKE ? OR lower(coalesce(d.description,'')) LIKE ? OR lower(coalesce(d.document_number,'')) LIKE ? OR lower(coalesce(d.issuer,'')) LIKE ? OR lower(coalesce(d.notes,'')) LIKE ? OR lower(d.category) LIKE ? OR lower(coalesce(d.document_date,'')) LIKE ? OR lower(coalesce(d.expires_at,'')) LIKE ?":'')+' ORDER BY d.updated_at DESC',...(q?Array(8).fill('%'+q+'%'):[]));
  return rows.map(mapDocument);
 }
 export async function getDocument(id:string){const db=await getDatabase();const row=await db.getFirstAsync<DocumentRow>(SELECT+' WHERE d.id=?',id);return row?mapDocument(row):null}
