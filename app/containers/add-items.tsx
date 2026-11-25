@@ -96,6 +96,9 @@ export default function AddItemsToContainerScreen() {
         autoCapitalize="none"
         returnKeyType="search"
       />
+      <Pressable style={styles.createButton} onPress={createNewItem}>
+        <Text style={styles.createButtonText}>＋ Crea nuovo oggetto</Text>
+      </Pressable>
 
       {loading ? (
         <Text style={styles.emptyText}>Caricamento inventario...</Text>
@@ -126,9 +129,6 @@ export default function AddItemsToContainerScreen() {
         <View style={styles.noResults}>
           <Text style={styles.emptyTitle}>{query.trim() ? 'Nessun oggetto trovato' : 'Inventario vuoto'}</Text>
           <Text style={styles.emptyText}>{query.trim() ? 'Non ci sono oggetti che corrispondono alla ricerca.' : 'Non hai ancora creato oggetti nell’inventario.'}</Text>
-          <Pressable style={styles.createButton} onPress={createNewItem}>
-            <Text style={styles.createButtonText}>＋ Crea nuovo oggetto</Text>
-          </Pressable>
         </View>
       )}
     </ScrollView>
@@ -152,6 +152,6 @@ const styles = StyleSheet.create({
   noResults: { alignItems: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: '#E1DFD7', borderRadius: 16, padding: 24, marginTop: 4 },
   emptyTitle: { color: '#252923', fontSize: 16, fontWeight: '800', textAlign: 'center' },
   emptyText: { color: '#777D72', textAlign: 'center', lineHeight: 21, marginTop: 7 },
-  createButton: { backgroundColor: '#43533C', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 14, marginTop: 18 },
+  createButton: { backgroundColor: '#43533C', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 14, alignItems: 'center', marginBottom: 18 },
   createButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 });
