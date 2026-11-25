@@ -28,13 +28,12 @@ export async function listLocations(): Promise<LocationRecord[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<{
     id: string; home_id: string; parent_id: string | null; name: string;
-    location_type: LocationType; home_name: string; parent_name: string | null;
+    location_type: LocationType; home_name: string;
   }>(
     `SELECT l.id, l.home_id, l.parent_id, l.name, l.location_type,
-            h.name AS home_name, p.name AS parent_name
+            h.name AS home_name
      FROM locations l
      JOIN homes h ON h.id = l.home_id
-     LEFT JOIN locations p ON p.id = l.parent_id
      ORDER BY h.name COLLATE NOCASE, l.name COLLATE NOCASE`
   );
   const byId = new Map(rows.map((row) => [row.id, row]));
