@@ -128,7 +128,7 @@ export default function ContainerDetailScreen() {
           {container.locationName ? <Text style={styles.notes}>⌖  {container.locationName}</Text> : <Text style={styles.locationMissing}>Ubicazione non assegnata</Text>}
           {container.notes ? <Text style={styles.notes}>{container.notes}</Text> : null}
           <Pressable style={styles.editButton} onPress={() => router.push({ pathname: '/containers/edit', params: { id: container.id } })}>
-            <Text style={styles.editButtonText}>Modifica nome e tipologia</Text>
+            <Text style={styles.editButtonText}>Modifica contenitore</Text>
           </Pressable>
         </View>
 
