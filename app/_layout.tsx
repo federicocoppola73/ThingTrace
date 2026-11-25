@@ -32,6 +32,10 @@ export default function RootLayout() {
     }}>
       <Stack.Screen name="index" options={{ title: 'ThingTrace', headerShown: false }} />
       <Stack.Screen name="containers/new" options={{ title: 'Nuovo contenitore', presentation: 'modal' }} />
+      <Stack.Screen name="items/index" options={{ title: 'Oggetti' }} />
+      <Stack.Screen name="items/new" options={{ title: 'Nuovo oggetto', presentation: 'modal' }} />
+      <Stack.Screen name="items/[id]" options={{ title: 'Oggetto' }} />
+      <Stack.Screen name="items/edit" options={{ title: 'Modifica oggetto', presentation: 'modal' }} />
       <Stack.Screen name="containers/[id]" options={{ title: 'Contenitore' }} />
       <Stack.Screen name="trash" options={{ title: 'Cestino foto' }} />
       <Stack.Screen name="locations" options={{ title: 'Sedi e ubicazioni' }} />
