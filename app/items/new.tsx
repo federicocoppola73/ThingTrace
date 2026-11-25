@@ -35,7 +35,7 @@ export default function NewItemScreen() {
     finally { setSaving(false); }
   }
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}>
       <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={styles.label}>NOME OGGETTO</Text>
         <TextInput value={name} onChangeText={setName} placeholder="Es. Macchina fotografica" style={styles.input} returnKeyType="next" />
