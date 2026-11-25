@@ -42,7 +42,7 @@ export function LocationPicker({ locations, selectedLocationId, onSelect }: Prop
     return locations
       .filter((item) => normalize(item.name).includes(term) || normalize(item.path).includes(term) || normalize(item.homeName).includes(term))
       .sort((a, b) => a.homeName.localeCompare(b.homeName, 'it') || a.path.localeCompare(b.path, 'it'))
-      .slice(0, 100);
+;
   }, [locations, query]);
 
   function openPicker() {
@@ -113,10 +113,17 @@ export function LocationPicker({ locations, selectedLocationId, onSelect }: Prop
                   </Pressable>
                 )) : browseItems.map((item) => (
                   <View key={item.id} style={styles.resultRow}>
-                    <Pressable onPress={() => setParentId(item.id)} style={styles.resultCopy}>
-                      <Text style={styles.itemName}>{item.name}</Text>
-                      <Text style={styles.itemType}>{TYPE_LABELS[item.type]}</Text>
-                    </Pressable>
+                    {item.type === 'POSITION' ? (
+                      <View style={styles.resultCopy}>
+                        <Text style={styles.itemName}>{item.name}</Text>
+                        <Text style={styles.itemType}>{TYPE_LABELS[item.type]}</Text>
+                      </View>
+                    ) : (
+                      <Pressable onPress={() => setParentId(item.id)} style={styles.resultCopy}>
+                        <Text style={styles.itemName}>{item.name}</Text>
+                        <Text style={styles.itemType}>{TYPE_LABELS[item.type]}</Text>
+                      </Pressable>
+                    )}
                     <Pressable onPress={() => choose(item.id)} style={styles.chooseButton}><Text style={styles.chooseText}>Scegli</Text></Pressable>
                     {item.type !== 'POSITION' ? <Pressable onPress={() => setParentId(item.id)} style={styles.drillButton}><Text style={styles.arrow}>›</Text></Pressable> : null}
                   </View>
