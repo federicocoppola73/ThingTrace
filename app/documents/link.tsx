@@ -1,4 +1,5 @@
-import { useCallback,useMemo,useState } from 'react';\nimport type { ReactNode } from 'react';
+import { useCallback,useMemo,useState } from 'react';
+import type { ReactNode } from 'react';
 import { useFocusEffect,useLocalSearchParams,useRouter } from 'expo-router';
 import { Alert,Pressable,ScrollView,StyleSheet,Text,TextInput,View } from 'react-native';
 import { getDocument,linkDocument,type DocumentEntity } from '@/repositories/documentRepository';
