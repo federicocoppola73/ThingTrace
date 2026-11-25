@@ -14,7 +14,7 @@ const ITEM_SELECT=`WITH RECURSIVE lp(id,home_id,path) AS(SELECT id,home_id,name 
 async function label(db:Awaited<ReturnType<typeof getDatabase>>,d:ItemDestination):Promise<string|null>{
  if(d.kind==='none')return null;
  if(d.kind==='container'){const r=await db.getFirstAsync<{name:string}>('SELECT name FROM containers WHERE id=?',d.id);if(!r)throw Error('Il contenitore selezionato non esiste più.');return r.name;}
- const r=await db.getFirstAsync<{value:string}>(`WITH RECURSIVE p(id,home_id,parent_id,path) AS(SELECT id,home_id,parent_id,name FROM locations UNION ALL SELECT l.id,l.home_id,l.parent_id,p.path||' › '||l.name FROM locations l JOIN p ON l.id=p.parent_id) SELECT h.name||' · '||p.path AS value FROM p JOIN homes h ON h.id=p.home_id WHERE p.id=? LIMIT 1`,d.id);
+ const r=await db.getFirstAsync<{value:string}>(`WITH RECURSIVE p(id,home_id,path) AS(SELECT id,home_id,name FROM locations WHERE parent_id IS NULL UNION ALL SELECT l.id,l.home_id,p.path||' › '||l.name FROM locations l JOIN p ON l.parent_id=p.id) SELECT h.name||' · '||p.path AS value FROM p JOIN homes h ON h.id=p.home_id WHERE p.id=?`,d.id);
  if(!r)throw Error('L’ubicazione selezionata non esiste più.');return r.value;
 }
 async function event(db:Awaited<ReturnType<typeof getDatabase>>,itemId:string,from:ItemDestination,to:ItemDestination,note:string|null,now:string){
