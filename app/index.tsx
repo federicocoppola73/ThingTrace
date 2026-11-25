@@ -1,12 +1,13 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { listContainers, type ContainerSummary } from '@/repositories/containerRepository';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [containers, setContainers] = useState<ContainerSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const refresh = useCallback(() => {
     listContainers()
@@ -15,6 +16,14 @@ export default function HomeScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase().trim();
+  const filteredContainers = containers.filter((container) => {
+    const query = normalize(search);
+    if (!query) return true;
+    return [container.name, container.typeLabel, container.type, container.notes ?? '']
+      .some((value) => normalize(value).includes(query));
+  });
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
@@ -26,9 +35,23 @@ export default function HomeScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>I tuoi contenitori</Text>
-        <Text style={styles.count}>{containers.length}</Text>
+        <Text style={styles.count}>{search.trim() ? `${filteredContainers.length} / ${containers.length}` : containers.length}</Text>
       </View>
 
+      <View style={styles.searchBox}>
+        <Text style={styles.searchIcon}>⌕</Text>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Cerca per nome, tipologia o note..."
+          placeholderTextColor="#92968E"
+          style={styles.searchInput}
+          autoCapitalize="none"
+          returnKeyType="search"
+          clearButtonMode="while-editing"
+          accessibilityLabel="Cerca contenitori per nome, tipologia o note"
+        />
+      </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {containers.length === 0 ? (
         <View style={styles.empty}>
@@ -37,7 +60,12 @@ export default function HomeScreen() {
           <Text style={styles.emptyText}>Crea il primo contenitore e aggiungi una fotografia del suo contenuto.</Text>
         </View>
       ) : (
-        containers.map((container) => (
+        filteredContainers.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>Nessun contenitore trovato</Text>
+            <Text style={styles.emptyText}>Prova con un altro nome, una tipologia o una parola delle note.</Text>
+          </View>
+        ) : filteredContainers.map((container) => (
           <Pressable key={container.id} style={styles.card} onPress={() => router.push({ pathname: '/containers/[id]', params: { id: container.id } })}>
             <View style={styles.cardIcon}><Text style={styles.cardIconText}>▤</Text></View>
             <View style={{ flex: 1 }}>
@@ -65,6 +93,9 @@ const styles = StyleSheet.create({
   eyebrow: { color: '#68715E', fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginBottom: 12 },
   title: { color: '#252923', fontSize: 36, lineHeight: 39, fontWeight: '800', letterSpacing: -1.2 },
   subtitle: { color: '#5E6258', fontSize: 15, lineHeight: 22, marginTop: 14, maxWidth: 280 },
+  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E3E1D9', borderRadius: 14, paddingHorizontal: 13, marginBottom: 16, minHeight: 50 },
+  searchIcon: { fontSize: 25, color: '#68715E', marginRight: 9 },
+  searchInput: { flex: 1, color: '#252923', fontSize: 14, paddingVertical: 12 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   sectionTitle: { fontSize: 20, fontWeight: '800', color: '#252923', flex: 1 },
   count: { color: '#74796F', fontWeight: '700' },
