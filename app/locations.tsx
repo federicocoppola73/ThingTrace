@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
-  createHome, createLocation, deleteHome, deleteLocation, listHomes, listLocations,
+  createHome, createLocation, deleteHome, deleteLocation, getHomeDeleteImpact, getLocationDeleteImpact, listHomes, listLocations,
   renameHome, renameLocation, type HomeRecord, type LocationRecord, type LocationType
 } from '@/repositories/locationRepository';
 
@@ -61,24 +61,52 @@ export default function LocationsScreen() {
     } finally { setSaving(false); }
   }
 
-  function confirmDeleteHome(home: HomeRecord) {
-    Alert.alert('Eliminare la sede?', `Vuoi eliminare "${home.name}"? L’operazione è possibile solo se non contiene ubicazioni.`, [
-      { text: 'Annulla', style: 'cancel' },
-      { text: 'Elimina', style: 'destructive', onPress: async () => {
-        try { await deleteHome(home.id); await refresh(); }
-        catch (error) { Alert.alert('Impossibile eliminare', error instanceof Error ? error.message : 'Errore imprevisto.'); }
-      } }
-    ]);
+  async function confirmDeleteHome(home: HomeRecord) {
+    try {
+      const impact = await getHomeDeleteImpact(home.id);
+      const details = impact.containers > 0
+        ? `\\n\\nSaranno eliminate ${impact.locations} ubicazioni e scollegati ${impact.containers} contenitori. I contenitori e le loro fotografie resteranno nell'archivio, ma non avranno più un'ubicazione.`
+        : `\\n\\nSaranno eliminate ${impact.locations} ubicazioni.`;
+      Alert.alert(
+        'Eliminare l’intera sede?',
+        `Vuoi eliminare "${home.name}" e tutte le sue stanze/zone, luoghi e posizioni?${details}\\n\\nQuesta operazione non può essere annullata.`,
+        [
+          { text: 'Annulla', style: 'cancel' },
+          { text: 'Elimina tutta la sede', style: 'destructive', onPress: async () => {
+            try { await deleteHome(home.id); await refresh(); }
+            catch (error) { Alert.alert('Impossibile eliminare', error instanceof Error ? error.message : 'Errore imprevisto.'); }
+          } }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Errore', error instanceof Error ? error.message : 'Impossibile verificare gli elementi collegati.');
+    }
   }
 
-  function confirmDeleteLocation(location: LocationRecord) {
-    Alert.alert('Eliminare l’ubicazione?', `Vuoi eliminare "${location.name}"? Le ubicazioni con elementi collegati non possono essere eliminate.`, [
-      { text: 'Annulla', style: 'cancel' },
-      { text: 'Elimina', style: 'destructive', onPress: async () => {
-        try { await deleteLocation(location.id); await refresh(); }
-        catch (error) { Alert.alert('Impossibile eliminare', error instanceof Error ? error.message : 'Errore imprevisto.'); }
-      } }
-    ]);
+  async function confirmDeleteLocation(location: LocationRecord) {
+    try {
+      const impact = await getLocationDeleteImpact(location.id);
+      const label = TYPE_LABEL[location.type].toLowerCase();
+      const details = impact.locations > 1
+        ? `\\n\\nSaranno eliminate ${impact.locations} ubicazioni, inclusi tutti i livelli sottostanti.`
+        : '\\n\\nSarà eliminata questa ubicazione.';
+      const containerDetails = impact.containers > 0
+        ? `\\nSaranno scollegati ${impact.containers} contenitori. I contenitori e le loro fotografie resteranno nell'archivio, ma non avranno più un'ubicazione.`
+        : '';
+      Alert.alert(
+        `Eliminare ${label}?`,
+        `Vuoi eliminare "${location.name}" e il relativo ramo?${details}${containerDetails}\\n\\nQuesta operazione non può essere annullata.`,
+        [
+          { text: 'Annulla', style: 'cancel' },
+          { text: 'Elimina', style: 'destructive', onPress: async () => {
+            try { await deleteLocation(location.id); await refresh(); }
+            catch (error) { Alert.alert('Impossibile eliminare', error instanceof Error ? error.message : 'Errore imprevisto.'); }
+          } }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Errore', error instanceof Error ? error.message : 'Impossibile verificare gli elementi collegati.');
+    }
   }
 
   function renderLocation(location: LocationRecord, homeId: string, depth: number): ReactNode {
