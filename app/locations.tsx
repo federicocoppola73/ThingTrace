@@ -1,7 +1,7 @@
 import { DocumentLinksSection } from '@/components/DocumentLinksSection';
 import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   createHome, createLocation, deleteHome, deleteLocation, getHomeDeleteImpact, getLocationDeleteImpact, listHomes, listLocations,
@@ -16,7 +16,6 @@ type Editor =
 const TYPE_LABEL: Record<LocationType, string> = { AREA: 'Stanza/Zona', ROOM: 'Luogo', POSITION: 'Posizione' };
 
 export default function LocationsScreen() {
-  const router = useRouter();
   const { documentId } = useLocalSearchParams<{ documentId?: string }>();
   const [homes, setHomes] = useState<HomeRecord[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
@@ -196,7 +195,7 @@ export default function LocationsScreen() {
           <View key={home.id} style={styles.homeCard}>
             <View style={styles.homeHeader}>
               <Pressable onPress={() => toggleHome(home.id)} style={{ flex: 1 }}>
-                <Text style={styles.homeLabel}>SEDE · {expandedHomes.has(home.id) ? 'APERta'.toUpperCase() : 'CHIUSA'}</Text>
+                <Text style={styles.homeLabel}>SEDE · {expandedHomes.has(home.id) ? 'APERTA' : 'CHIUSA'}</Text>
                 <Text style={styles.homeName}>{home.name}</Text>
               </Pressable>
               <Pressable onPress={() => begin({ kind: 'home', mode: 'rename', id: home.id }, home.name)} style={styles.smallAction}><Text style={styles.actionText}>Rinomina</Text></Pressable>
