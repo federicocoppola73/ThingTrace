@@ -149,13 +149,18 @@ export default function ContainerDetailScreen() {
         <Text style={styles.footnote}>Le fotografie scattate o selezionate vengono copiate nell'archivio privato di ThingTrace. Gli originali non vengono eliminati.</Text>
       </ScrollView>
 
-      <Modal visible={cameraOpen} animationType="slide" onRequestClose={() => setCameraOpen(false)}>
+      <Modal visible={cameraOpen} animationType="slide" hardwareAccelerated onRequestClose={() => setCameraOpen(false)}>
         <View style={styles.cameraScreen}>
           <CameraView
             ref={cameraRef}
             style={styles.camera}
             facing="back"
+            active={cameraOpen}
             onCameraReady={() => setCameraReady(true)}
+            onMountError={(event) => {
+              setCameraReady(false);
+              Alert.alert('Errore fotocamera', event.message || 'La fotocamera non è riuscita ad avviare l’anteprima.');
+            }}
           />
           <View style={styles.cameraControls}>
             <Pressable style={styles.cameraCancel} onPress={() => setCameraOpen(false)}>
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: { color: '#43533C', fontWeight: '800', fontSize: 15 },
   footnote: { color: '#858A80', fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 14 },
   cameraScreen: { flex: 1, backgroundColor: '#000000', justifyContent: 'flex-end' },
-  camera: { ...StyleSheet.absoluteFillObject },
+  camera: { flex: 1, width: '100%' },
   cameraControls: { minHeight: 120, paddingHorizontal: 28, paddingBottom: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cameraCancel: { minWidth: 76, paddingVertical: 12 },
   cameraCancelText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
