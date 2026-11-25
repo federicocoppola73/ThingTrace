@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { createItem } from '@/repositories/itemRepository';
+import { createItem, type ItemDestination } from '@/repositories/itemRepository';
 import { listContainers, type ContainerSummary } from '@/repositories/containerRepository';
 import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
 import { ContainerPicker } from '@/components/ContainerPicker';
@@ -13,7 +13,7 @@ export default function NewItemScreen() {
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [notes, setNotes] = useState('');
-  const [containerId, setContainerId] = useState<string | null>(null);
+  const [destination, setDestination] = useState<ItemDestination>({ kind: 'none', id: null });
   const [containers, setContainers] = useState<ContainerSummary[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [saving, setSaving] = useState(false);
@@ -30,7 +30,7 @@ export default function NewItemScreen() {
     if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1) { Alert.alert('Quantità non valida', 'Inserisci un numero intero maggiore di zero.'); return; }
     setSaving(true);
     try {
-      const id = await createItem({ name, description: description || null, quantity: parsedQuantity, notes: notes || null, containerId });
+      const id = await createItem({ name, description: description || null, quantity: parsedQuantity, notes: notes || null, destination });
       router.replace({ pathname: '/items/[id]', params: { id } });
     } catch (error) { Alert.alert('Salvataggio non riuscito', error instanceof Error ? error.message : 'Errore imprevisto.'); }
     finally { setSaving(false); }
@@ -44,8 +44,8 @@ export default function NewItemScreen() {
         <TextInput value={description} onChangeText={setDescription} placeholder="Marca, modello, caratteristiche..." style={[styles.input, styles.multiline]} multiline />
         <Text style={styles.label}>QUANTITÀ</Text>
         <TextInput value={quantity} onChangeText={setQuantity} keyboardType="number-pad" style={styles.input} />
-        <Text style={styles.label}>CONTENITORE (FACOLTATIVO)</Text>
-        <ContainerPicker containers={containers} locations={locations} selectedContainerId={containerId} onSelect={setContainerId} />
+        <Text style={styles.label}>COLLOCAZIONE INIZIALE (FACOLTATIVA)</Text>
+        <ContainerPicker containers={containers} locations={locations} selected={destination} onSelect={setDestination} />
         <Text style={styles.label}>NOTE (FACOLTATIVE)</Text>
         <TextInput value={notes} onChangeText={setNotes} placeholder="Aggiungi dettagli utili..." style={[styles.input, styles.multiline]} multiline onFocus={() => requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }))} />
         <Pressable disabled={saving} onPress={save} style={[styles.button, saving && { opacity: 0.6 }]}><Text style={styles.buttonText}>{saving ? 'Salvataggio...' : 'Crea oggetto'}</Text></Pressable>
