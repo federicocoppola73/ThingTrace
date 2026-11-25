@@ -152,13 +152,13 @@ export default function ItemDetailScreen() {
           <Text style={styles.quantity}>Quantità: {item.quantity}</Text>
           <Text style={styles.location}>{item.currentContainerName ? 'Contenitore: ' + item.currentContainerName : item.currentLocationName ? 'Ubicazione: ' + item.currentLocationName : 'Non assegnato'}</Text>
           {(item.currentContainerId || item.currentLocationId) ? <View style={styles.locationActions}>
+            <Pressable style={styles.moveButton} onPress={openMove}><Text style={styles.moveText}>Sposta</Text></Pressable>
             <Pressable style={styles.disassociateButton} onPress={confirmUnassign}><Text style={styles.disassociateText}>Rimuovi</Text></Pressable>
           </View> : <Pressable style={[styles.moveButton, { alignSelf: 'flex-start', marginTop: 12 }]} onPress={openMove}><Text style={styles.moveText}>Assegna collocazione</Text></Pressable>}
           {item.description ? <Text style={styles.body}>{item.description}</Text> : null}
           {item.notes ? <Text style={styles.body}>{item.notes}</Text> : null}
           <View style={styles.actions}>
             <Pressable style={styles.editButton} onPress={() => router.push({ pathname: '/items/edit', params: { id: item.id } })}><Text style={styles.editText}>Modifica oggetto</Text></Pressable>
-            <Pressable style={styles.moveButton} onPress={openMove}><Text style={styles.moveText}>Sposta</Text></Pressable>
             <Pressable style={styles.deleteItemButton} onPress={confirmDeleteItem}><Text style={styles.deleteItemText}>Elimina</Text></Pressable>
           </View>
         </View>
