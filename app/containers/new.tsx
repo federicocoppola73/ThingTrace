@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createContainer } from '@/repositories/containerRepository';
+import { linkDocument } from '@/repositories/documentRepository';
 import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
 import { LocationPicker } from '@/components/LocationPicker';
 
@@ -17,6 +18,7 @@ const TYPES = [
 
 export default function NewContainerScreen() {
   const router = useRouter();
+  const { documentId } = useLocalSearchParams<{ documentId?: string }>();
   const [name, setName] = useState('');
   const [type, setType] = useState<(typeof TYPES)[number]['value']>('BOX');
   const [notes, setNotes] = useState('');
@@ -34,7 +36,9 @@ export default function NewContainerScreen() {
     setSaving(true);
     try {
       const id = await createContainer({ name: name.trim(), type, notes: notes.trim() || null, locationId });
-      router.replace({ pathname: '/containers/[id]', params: { id } });
+      if (documentId) await linkDocument(documentId, { type: 'CONTAINER', id });
+      if (documentId) router.replace({ pathname: '/documents/[id]', params: { id: documentId } });
+      else router.replace({ pathname: '/containers/[id]', params: { id } });
     } catch (error) {
       Alert.alert('Salvataggio non riuscito', error instanceof Error ? error.message : 'Errore imprevisto.');
     } finally {
