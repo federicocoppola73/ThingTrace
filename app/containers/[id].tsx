@@ -13,6 +13,7 @@ import {
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { CameraView as CameraViewType } from 'expo-camera';
 import { getContainer, type ContainerDetail } from '@/repositories/containerRepository';
+import { listItems, type ItemSummary } from '@/repositories/itemRepository';
 import { initializeDatabase, getDatabase } from '@/database/database';
 import { pickAndImportPhotos } from '@/foto/photoPicker';
 import { FotoService } from '@/foto/fotoService';
@@ -21,6 +22,7 @@ export default function ContainerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [container, setContainer] = useState<ContainerDetail | null>(null);
+  const [items, setItems] = useState<ItemSummary[]>([]);
   const [photoRecords, setPhotoRecords] = useState<import('@/foto/types').PhotoRecord[]>([]);
   const [photoUris, setPhotoUris] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -35,8 +37,9 @@ export default function ContainerDetailScreen() {
     setLoading(true);
     try {
       await initializeDatabase();
-      const detail = await getContainer(id);
+      const [detail, allItems] = await Promise.all([getContainer(id), listItems()]);
       setContainer(detail);
+      setItems(allItems.filter((item) => item.currentContainerId === id));
       if (detail) {
         const db = await getDatabase();
         const service = new FotoService(db);
@@ -45,6 +48,7 @@ export default function ContainerDetailScreen() {
         setPhotoRecords(photos);
         setPhotoUris(Object.fromEntries(uris));
       } else {
+        setItems([]);
         setPhotoRecords([]);
         setPhotoUris({});
       }
@@ -133,6 +137,43 @@ export default function ContainerDetailScreen() {
         </View>
 
         <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Oggetti</Text>
+          <Text style={styles.muted}>{items.length}</Text>
+          <Pressable
+            style={styles.addItemButton}
+            onPress={() => router.push({ pathname: '/items/new', params: { containerId: container.id } })}
+          >
+            <Text style={styles.addItemButtonText}>＋ Aggiungi</Text>
+          </Pressable>
+        </View>
+
+        {items.length ? (
+          <View style={styles.itemList}>
+            {items.map((item) => (
+              <Pressable
+                key={item.id}
+                style={styles.itemCard}
+                onPress={() => router.push({ pathname: '/items/[id]', params: { id: item.id } })}
+                accessibilityRole="button"
+                accessibilityLabel={`Apri ${item.name}`}
+              >
+                <View style={styles.itemCardText}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  {item.description ? <Text style={styles.itemDescription} numberOfLines={2}>{item.description}</Text> : null}
+                </View>
+                <Text style={styles.itemQuantity}>× {item.quantity}</Text>
+                <Text style={styles.itemChevron}>›</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>Nessun oggetto è attualmente associato a questo contenitore.</Text>
+            <Text style={styles.emptyText}>Puoi aggiungerne uno con il pulsante qui sopra.</Text>
+          </View>
+        )}
+
+        <View style={[styles.sectionHeader, { marginTop: 28 }]}>
           <Text style={styles.sectionTitle}>Fotografie</Text>
           <Text style={styles.muted}>{photoRecords.length}</Text>
         </View>
@@ -226,6 +267,15 @@ const styles = StyleSheet.create({
   editButtonText: { color: '#43533C', fontWeight: '800', fontSize: 13 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   sectionTitle: { flex: 1, color: '#252923', fontSize: 20, fontWeight: '800' },
+  addItemButton: { backgroundColor: '#43533C', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, marginLeft: 10 },
+  addItemButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12 },
+  itemList: { gap: 9 },
+  itemCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 13, borderWidth: 1, borderColor: '#ECEAE3', padding: 15, gap: 10 },
+  itemCardText: { flex: 1 },
+  itemName: { color: '#252923', fontSize: 15, fontWeight: '800' },
+  itemDescription: { color: '#777D72', fontSize: 12, marginTop: 4, lineHeight: 17 },
+  itemQuantity: { color: '#59634F', fontSize: 13, fontWeight: '800' },
+  itemChevron: { color: '#858A80', fontSize: 24, marginLeft: 2 },
   empty: { padding: 22, borderWidth: 1, borderStyle: 'dashed', borderColor: '#E1DFD7', borderRadius: 16 },
   emptyText: { color: '#777D72', textAlign: 'center', lineHeight: 21 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
