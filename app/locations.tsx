@@ -65,11 +65,11 @@ export default function LocationsScreen() {
     try {
       const impact = await getHomeDeleteImpact(home.id);
       const details = impact.containers > 0
-        ? `\\n\\nSaranno eliminate ${impact.locations} ubicazioni e scollegati ${impact.containers} contenitori. I contenitori e le loro fotografie resteranno nell'archivio, ma non avranno più un'ubicazione.`
-        : `\\n\\nSaranno eliminate ${impact.locations} ubicazioni.`;
+        ? `\n\nSaranno eliminate ${impact.locations} ubicazioni e scollegati ${impact.containers} contenitori. I contenitori e le loro fotografie resteranno nell'archivio, ma non avranno più un'ubicazione.`
+        : `\n\nSaranno eliminate ${impact.locations} ubicazioni.`;
       Alert.alert(
         'Eliminare l’intera sede?',
-        `Vuoi eliminare "${home.name}" e tutte le sue stanze/zone, luoghi e posizioni?${details}\\n\\nQuesta operazione non può essere annullata.`,
+        `Vuoi eliminare "${home.name}" e tutte le sue stanze/zone, luoghi e posizioni?${details}\n\nQuesta operazione non può essere annullata.`,
         [
           { text: 'Annulla', style: 'cancel' },
           { text: 'Elimina tutta la sede', style: 'destructive', onPress: async () => {
@@ -88,14 +88,14 @@ export default function LocationsScreen() {
       const impact = await getLocationDeleteImpact(location.id);
       const label = TYPE_LABEL[location.type].toLowerCase();
       const details = impact.locations > 1
-        ? `\\n\\nSaranno eliminate ${impact.locations} ubicazioni, inclusi tutti i livelli sottostanti.`
-        : '\\n\\nSarà eliminata questa ubicazione.';
+        ? `\n\nSaranno eliminate ${impact.locations} ubicazioni, inclusi tutti i livelli sottostanti.`
+        : '\n\nSarà eliminata questa ubicazione.';
       const containerDetails = impact.containers > 0
-        ? `\\nSaranno scollegati ${impact.containers} contenitori. I contenitori e le loro fotografie resteranno nell'archivio, ma non avranno più un'ubicazione.`
+        ? `\nSaranno scollegati ${impact.containers} contenitori. I contenitori e le loro fotografie resteranno nell'archivio, ma non avranno più un'ubicazione.`
         : '';
       Alert.alert(
         `Eliminare ${label}?`,
-        `Vuoi eliminare "${location.name}" e il relativo ramo?${details}${containerDetails}\\n\\nQuesta operazione non può essere annullata.`,
+        `Vuoi eliminare "${location.name}" e il relativo ramo?${details}${containerDetails}\n\nQuesta operazione non può essere annullata.`,
         [
           { text: 'Annulla', style: 'cancel' },
           { text: 'Elimina', style: 'destructive', onPress: async () => {
