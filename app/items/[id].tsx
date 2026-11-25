@@ -161,7 +161,7 @@ export default function ItemDetailScreen() {
       </ScrollView>
 
       <Modal visible={moveOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setMoveOpen(false)}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.modalPage} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <Text style={styles.modalTitle}>Sposta oggetto</Text>
           <Text style={styles.modalHint}>Seleziona il nuovo contenitore. Ogni variazione verrà registrata nello storico.</Text>
