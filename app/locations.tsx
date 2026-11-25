@@ -70,8 +70,7 @@ export default function LocationsScreen() {
     try {
       if (editor.kind === 'home') {
         if (editor.mode === 'create') {
-          const createdHomeId = await createHome(name);
-          setExpandedHomes((current) => new Set(current).add(createdHomeId));
+          await createHome(name);
         }
         else if (editor.id) await renameHome(editor.id, name);
       } else {
