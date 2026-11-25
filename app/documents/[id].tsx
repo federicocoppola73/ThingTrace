@@ -2,7 +2,6 @@ import { useCallback,useState } from 'react';
 import { useFocusEffect,useLocalSearchParams,useRouter } from 'expo-router';
 import { Alert,Pressable,ScrollView,StyleSheet,Text,View } from 'react-native';
 import { File } from 'expo-file-system';
-import { getDatabase } from '@/database/database';
 import { DocumentStorage } from '@/documents/documentStorage';
 import { pickDocumentAttachments } from '@/documents/documentPicker';
 import { deleteDocument,deleteDocumentAttachment,getDocument,listDocumentAttachments,listDocumentLinks,unlinkDocument,type DocumentAttachment,type DocumentLink,type DocumentRecord } from '@/repositories/documentRepository';
