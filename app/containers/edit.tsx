@@ -4,6 +4,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { getContainer, updateContainer, type ContainerType } from '@/repositories/containerRepository';
 import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
 import { LocationPicker } from '@/components/LocationPicker';
+import { LocationPicker } from '@/components/LocationPicker';
 
 const TYPES: { value: ContainerType; label: string }[] = [
   { value: 'BOX', label: 'Scatola' },
@@ -82,9 +83,8 @@ export default function EditContainerScreen() {
         ))}
       </View>
       <Text style={styles.label}>UBICAZIONE (FACOLTATIVA)</Text>
-      {locations.length ? (
-        <LocationPicker locations={locations} selectedLocationId={locationId} onSelect={setLocationId} />
-      ) : <Text style={styles.locationHint}>Nessuna ubicazione configurata.</Text>}
+      <LocationPicker locations={locations} selectedLocationId={locationId} onSelect={setLocationId} />
+      <Text style={styles.locationHint}>Puoi scegliere qualsiasi livello da Stanza/Zona in poi: non è necessario indicare una Posizione specifica.</Text>
       <Pressable onPress={() => router.push('/locations')} style={styles.manageLocations}><Text style={styles.manageLocationsText}>Gestisci ubicazioni</Text></Pressable>
       <Text style={styles.label}>NOTE (FACOLTATIVE)</Text>
       <TextInput
