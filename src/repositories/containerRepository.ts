@@ -19,6 +19,7 @@ type ContainerRow = {
   type: ContainerType;
   notes: string | null;
   location_name: string | null;
+  location_id?: string | null;
   photo_count?: number;
 };
 
@@ -28,6 +29,7 @@ export interface ContainerSummary {
   type: ContainerType;
   typeLabel: string;
   locationName: string | null;
+  locationId: string | null;
   photoCount: number;
   notes: string | null;
 }
@@ -40,13 +42,14 @@ export async function createContainer(input: {
   name: string;
   type: ContainerType;
   notes: string | null;
+  locationId?: string | null;
 }): Promise<string> {
   const db = await getDatabase();
   const id = Crypto.randomUUID();
   const now = new Date().toISOString();
   await db.runAsync(
-    'INSERT INTO containers (id, name, type, qr_token, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    id, input.name, input.type, Crypto.randomUUID(), input.notes, now, now
+    'INSERT INTO containers (id, name, type, location_id, qr_token, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    id, input.name, input.type, input.locationId ?? null, Crypto.randomUUID(), input.notes, now, now
   );
   return id;
 }
@@ -54,7 +57,7 @@ export async function createContainer(input: {
 export async function listContainers(): Promise<ContainerSummary[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<ContainerRow>(
-    `SELECT c.id, c.name, c.type, c.notes, l.name AS location_name,
+    `SELECT c.id, c.name, c.type, c.notes, c.location_id, l.name AS location_name,
             COUNT(p.id) AS photo_count
      FROM containers c
      LEFT JOIN locations l ON l.id = c.location_id
@@ -69,6 +72,7 @@ export async function listContainers(): Promise<ContainerSummary[]> {
     type: row.type,
     typeLabel: TYPE_LABELS[row.type],
     locationName: row.location_name,
+    locationId: row.location_id ?? null,
     photoCount: Number(row.photo_count ?? 0),
     notes: row.notes
   }));
@@ -78,11 +82,12 @@ export async function updateContainer(id: string, input: {
   name: string;
   type: ContainerType;
   notes: string | null;
+  locationId?: string | null;
 }): Promise<void> {
   const db = await getDatabase();
   const result = await db.runAsync(
-    'UPDATE containers SET name = ?, type = ?, notes = ?, updated_at = ? WHERE id = ?',
-    input.name.trim(), input.type, input.notes, new Date().toISOString(), id
+    'UPDATE containers SET name = ?, type = ?, notes = ?, location_id = ?, updated_at = ? WHERE id = ?',
+    input.name.trim(), input.type, input.notes, input.locationId ?? null, new Date().toISOString(), id
   );
   if (result.changes === 0) throw new Error('Contenitore non trovato.');
 }
@@ -90,7 +95,7 @@ export async function updateContainer(id: string, input: {
 export async function getContainer(id: string): Promise<ContainerDetail | null> {
   const db = await getDatabase();
   const row = await db.getFirstAsync<ContainerRow>(
-    `SELECT c.id, c.name, c.type, c.notes, l.name AS location_name
+    `SELECT c.id, c.name, c.type, c.notes, c.location_id, l.name AS location_name
      FROM containers c
      LEFT JOIN locations l ON l.id = c.location_id
      WHERE c.id = ?`,
@@ -103,6 +108,7 @@ export async function getContainer(id: string): Promise<ContainerDetail | null> 
     type: row.type,
     typeLabel: TYPE_LABELS[row.type],
     locationName: row.location_name,
+    locationId: row.location_id ?? null,
     photoCount: 0,
     notes: row.notes
   };
