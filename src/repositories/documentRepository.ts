@@ -43,3 +43,5 @@ export async function listDocumentAttachments(documentId:string):Promise<Documen
 export async function deleteDocument(id:string){const db=await getDatabase();await db.runAsync('DELETE FROM documents WHERE id=?',id)}
 export async function insertDocumentAttachment(a:DocumentAttachment){const db=await getDatabase();await db.runAsync('INSERT INTO document_attachments(id,document_id,original_name,file_path,mime_type,file_size,checksum_sha256,created_at) VALUES(?,?,?,?,?,?,?,?)',a.id,a.documentId,a.originalName,a.filePath,a.mimeType,a.fileSize,a.checksumSha256,a.createdAt)}
 export async function deleteDocumentAttachment(id:string){const db=await getDatabase();await db.runAsync('DELETE FROM document_attachments WHERE id=?',id)}
+
+export async function renameDocumentAttachment(id:string,name:string){const clean=name.trim();if(!clean)throw Error('Inserisci un nome per l’allegato.');const db=await getDatabase();const result=await db.runAsync('UPDATE document_attachments SET original_name=? WHERE id=?',clean,id);if(!result.changes)throw Error('Allegato non trovato.');}
