@@ -44,7 +44,8 @@ export type PhotoErrorCode =
   | 'PHOTO_ALREADY_IN_TRASH'
   | 'PHOTO_NOT_IN_TRASH'
   | 'PHOTO_FILE_MISSING'
-  | 'PHOTO_HAS_ACTIVE_LINKS';
+  | 'PHOTO_HAS_ACTIVE_LINKS'
+  | 'PHOTO_HAS_NO_LINKS';
 
 export class PhotoError extends Error {
   constructor(public readonly code: PhotoErrorCode, message: string) {
