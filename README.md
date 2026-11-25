@@ -59,7 +59,7 @@ Photos are copied into the app's private document storage. The original gallery 
 
 The photo migration requires the parent tables `containers`, `items` and `documents` to exist first. Call `runPhotoMigration(db)` after those tables have been created. Then construct `new FotoService(db)` and use `pickAndImportPhotos(service, { type: 'CONTAINER', id: containerId })` from a user interaction.
 
-Install Expo-compatible native dependencies from the app root with `npx expo install expo-sqlite expo-file-system expo-crypto expo-image-picker expo-camera` after the Expo app scaffold is created.
+Install Expo-compatible native dependencies from the app root with `npx expo install expo-sqlite expo-file-system expo-crypto expo-image-picker expo-camera expo-document-picker` after the Expo app scaffold is created.
 
 ## Not implemented yet
 
