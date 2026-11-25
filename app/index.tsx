@@ -43,13 +43,13 @@ export default function HomeScreen() {
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Cerca per nome, tipologia o note..."
+          placeholder="Cerca per nome, tipologia, note o ubicazione..."
           placeholderTextColor="#92968E"
           style={styles.searchInput}
           autoCapitalize="none"
           returnKeyType="search"
           clearButtonMode="while-editing"
-          accessibilityLabel="Cerca contenitori per nome, tipologia o note"
+          accessibilityLabel="Cerca contenitori per nome, tipologia, note o ubicazione"
         />
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
