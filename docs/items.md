@@ -26,3 +26,11 @@ I riferimenti ai contenitori nello storico usano `ON DELETE SET NULL`, mentre i 
 `src/database/runItemMigration.ts` aggiunge in modo idempotente le colonne `quantity`, `notes` e `current_container_id` alla tabella `items`, se mancanti, e crea la tabella e gli indici dello storico. Gli oggetti già presenti ricevono quantità 1 e rimangono inizialmente non assegnati.
 
 La migrazione viene eseguita dopo la creazione delle tabelle principali e dopo la migrazione del modulo foto.
+
+## Selezione contenitore e cancellazione
+
+La creazione e lo spostamento di un oggetto usano un selettore contenitori con modalità Esplora (navigazione per sede e ubicazione) e Cerca (nome del contenitore o percorso ubicazione). I contenitori senza ubicazione sono disponibili alla radice e nella ricerca.
+
+La cancellazione di un oggetto elimina anche gli eventi del suo storico. Le fotografie collegate esclusivamente a quell'oggetto vengono spostate logicamente nel cestino (il file archivio non viene cancellato); le fotografie ancora collegate ad altre entità restano attive. L'operazione è confermata esplicitamente dall'utente e non è reversibile per l'oggetto e il relativo storico.
+
+I moduli di creazione e modifica usano una vista che si adatta alla tastiera e mantiene scorrevole il contenuto; su Android la finestra ridimensiona il layout quando compare la tastiera.
