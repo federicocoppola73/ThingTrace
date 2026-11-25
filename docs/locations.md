@@ -11,11 +11,18 @@ Le sedi e le ubicazioni sono archiviate in SQLite. Ogni ubicazione appartiene a 
 
 I contenitori usano il campo esistente `containers.location_id`. L'ubicazione è facoltativa e può essere assegnata durante la creazione o aggiornata dalla schermata di modifica del contenitore. La lista e il dettaglio mostrano il percorso completo della sede e dell'ubicazione.
 
-## Regole di eliminazione
+## Eliminazione di sedi e rami di ubicazioni
 
-- Una sede può essere eliminata solo quando non contiene ubicazioni.
-- Un'ubicazione può essere eliminata solo quando non contiene ubicazioni figlie e non è assegnata a contenitori.
-- Per spostare un contenitore, aprire la modifica del contenitore e selezionare una nuova ubicazione oppure "Non assegnata".
+La cancellazione è ricorsiva: eliminare una sede rimuove tutte le sue stanze/zone, i luoghi e le posizioni; eliminare una stanza/zona o un livello inferiore rimuove anche tutte le ubicazioni discendenti.
+
+Prima della conferma, l'app mostra quante ubicazioni e quanti contenitori sono coinvolti. Se ci sono contenitori associati, il messaggio chiarisce che:
+
+- vengono eliminate le ubicazioni selezionate e tutte quelle sottostanti;
+- i contenitori non vengono eliminati;
+- i contenitori coinvolti vengono scollegati dall'ubicazione e rimangono nell'archivio, con fotografie e dati intatti;
+- l'operazione non può essere annullata.
+
+Per assegnare nuovamente un'ubicazione a un contenitore, aprire la modifica del contenitore e selezionare una nuova posizione.
 
 ## File principali
 
