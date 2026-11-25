@@ -90,6 +90,7 @@ export default function EditContainerScreen() {
           })}
         </View>
       ) : <Text style={styles.locationHint}>Nessuna ubicazione configurata.</Text>}
+      <Text style={styles.locationHint}>Puoi scegliere qualsiasi livello da Stanza/Zona in poi: non è necessario indicare una Posizione specifica.</Text>
       <Pressable onPress={() => router.push('/locations')} style={styles.manageLocations}><Text style={styles.manageLocationsText}>Gestisci ubicazioni</Text></Pressable>
       <Text style={styles.label}>NOTE (FACOLTATIVE)</Text>
       <TextInput
