@@ -4,7 +4,6 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { getContainer, updateContainer, type ContainerType } from '@/repositories/containerRepository';
 import { listLocations, type LocationRecord } from '@/repositories/locationRepository';
 import { LocationPicker } from '@/components/LocationPicker';
-import { LocationPicker } from '@/components/LocationPicker';
 
 const TYPES: { value: ContainerType; label: string }[] = [
   { value: 'BOX', label: 'Scatola' },
